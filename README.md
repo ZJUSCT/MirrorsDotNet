@@ -8,6 +8,11 @@ Mirrors.NET is a simple, fast, and reliable mirroring service build with .NET. I
 
 ### Overall
 
-### Mangaer
+### Manager
+
+#### API
+
+ref: https://github.com/mirrorz-org/mirrorz#data-format-v15-draft
 
 ### Worker
+
