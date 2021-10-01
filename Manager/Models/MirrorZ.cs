@@ -16,7 +16,7 @@ namespace Manager.Models
 
         public class SiteInfo
         {
-            [JsonPropertyName("url")] [Required] public string Url { get; set; }
+            [JsonPropertyName("url")] [Required] public string Url { get; set; }  // TODO: [FIXME] real notnull for `url` and `abbr` attributes
             [JsonPropertyName("logo")] public string LogoUrl { get; set; }
             [JsonPropertyName("logo_darkmode")] public string LogoDarkUrl { get; set; }
             [JsonPropertyName("abbr")] [Required] public string Abbreviation { get; set; }
