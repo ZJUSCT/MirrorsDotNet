@@ -1,3 +1,4 @@
+using System.ComponentModel.DataAnnotations;
 using System.Diagnostics.CodeAnalysis;
 using System.Runtime.Serialization;
 using System.Text.Json.Serialization;
@@ -15,10 +16,10 @@ namespace Manager.Models
 
         public class SiteInfo
         {
-            [JsonPropertyName("url")] [NotNull] public string Url { get; set; }
+            [JsonPropertyName("url")] [Required] public string Url { get; set; }
             [JsonPropertyName("logo")] public string LogoUrl { get; set; }
             [JsonPropertyName("logo_darkmode")] public string LogoDarkUrl { get; set; }
-            [JsonPropertyName("abbr")] [NotNull] public string Abbreviation { get; set; }
+            [JsonPropertyName("abbr")] [Required] public string Abbreviation { get; set; }
             [JsonPropertyName("name")] public string Name { get; set; }
             [JsonPropertyName("homepage")] public string HomePage { get; set; }
             [JsonPropertyName("issue")] public string Issue { get; set; }
@@ -26,7 +27,7 @@ namespace Manager.Models
             [JsonPropertyName("email")] public string Email { get; set; }
             [JsonPropertyName("group")] public string TelegramGroup { get; set; }
             [JsonPropertyName("disk")] public string DiskStatus { get; set; }
-            [JsonPropertyName("note")] public string NoteToUsers { get; set; }
+            [JsonPropertyName("note")] public string Notice { get; set; }
             [JsonPropertyName("big")] public string BigFileUrl { get; set; }
         }
 
