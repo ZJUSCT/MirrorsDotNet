@@ -40,7 +40,7 @@ namespace Manager.Controllers
                 },
                 Releases = new MirrorZ.ReleaseInfo[]
                 {
-                    new MirrorZ.ReleaseInfo()
+                    new()
                     {
                         DisplayName = "MeshLab",
                         Category = MirrorZ.ReleaseType.App,
