@@ -20,9 +20,7 @@ namespace Manager
             Host.CreateDefaultBuilder(args)
                 .ConfigureAppConfiguration((hostingContext, config) =>
                 {
-                    config.AddJsonFile("site-config.json",
-                        optional: true,
-                        reloadOnChange: true);
+                    config.AddYamlFile("site.yaml", optional: true, reloadOnChange: true);
                 })
                 .ConfigureWebHostDefaults(webBuilder => { webBuilder.UseStartup<Startup>(); });
     }
