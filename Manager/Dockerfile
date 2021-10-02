@@ -17,4 +17,5 @@ RUN dotnet publish "Manager.csproj" -c Release -o /app/publish
 FROM base AS final
 WORKDIR /app
 COPY --from=publish /app/publish .
+COPY --from=publish /src/Manager/Configs ./Configs
 ENTRYPOINT ["dotnet", "Manager.dll"]
