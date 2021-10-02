@@ -1,5 +1,4 @@
 using System.ComponentModel.DataAnnotations;
-using System.Diagnostics.CodeAnalysis;
 using System.Runtime.Serialization;
 using System.Text.Json.Serialization;
 
@@ -64,7 +63,7 @@ namespace Manager.Models
 
         public class DataFormat
         {
-            [JsonPropertyName("version")] public const double Version = FormatVersion;
+            [JsonPropertyName("version")] public double Version { get; } = FormatVersion;
             [JsonPropertyName("site")] public SiteInfo Site { get; set; }
             [JsonPropertyName("info")] public ReleaseInfo[] Releases { get; set; }
             [JsonPropertyName("mirrors")] public PackageInfo[] Packages { get; set; }
