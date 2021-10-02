@@ -1,0 +1,9 @@
+# Example Config for Packages
+MappedName: Debian
+Description: Debian packages
+Url: /debian
+HelpUrl: /help/debian
+
+Image: xxx/xxxx
+Upstream: https://mirrors.bfsu.edu.cn/debian
+Cron: 0 * * * * *

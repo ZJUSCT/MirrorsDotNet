@@ -42,7 +42,7 @@ namespace Manager.Controllers
                 {
                     new()
                     {
-                        DisplayName = "MeshLab",
+                        MappedName = "MeshLab",
                         Category = MirrorZ.ReleaseType.App,
                         UrlItems = new MirrorZ.UrlItem[]
                         {

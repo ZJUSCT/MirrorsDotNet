@@ -45,7 +45,7 @@ namespace Manager.Models
 
         public class ReleaseInfo
         {
-            [JsonPropertyName("distro")] public string DisplayName { get; set; }
+            [JsonPropertyName("distro")] public string MappedName { get; set; }
             [JsonPropertyName("category")] public ReleaseType Category { get; set; }
             [JsonPropertyName("urls")] public UrlItem[] UrlItems { get; set; }
         }

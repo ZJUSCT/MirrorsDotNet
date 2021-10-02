@@ -1,0 +1,8 @@
+# Example Config for Releases
+MappedName: Debian ISO
+Type: os
+BaseUrl: /debian-iso # real urls will be generated -> baseUrl + fileName
+
+Image: xxx/xxxx
+Upstream: https://mirrors.bfsu.edu.cn/debian
+Cron: 0 * * * * *
