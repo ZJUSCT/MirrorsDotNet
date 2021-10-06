@@ -15,7 +15,7 @@ namespace Manager.Models
     {
         [Key]
         public int Id { get; set; }
-        public Mirror Mirror { get; set; }
+        public MirrorBase MirrorBase { get; set; }
         public JobState State { get; set; }
         public DateTime StartTime { get; set; }
         public DateTime EndTime { get; set; }

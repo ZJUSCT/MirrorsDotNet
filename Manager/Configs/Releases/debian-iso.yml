@@ -5,4 +5,5 @@ BaseUrl: /debian-iso # real urls will be generated -> baseUrl + fileName
 
 Image: xxx/xxxx
 Upstream: https://mirrors.bfsu.edu.cn/debian
+#ExtraCommand:
 Cron: 0 * * * * *

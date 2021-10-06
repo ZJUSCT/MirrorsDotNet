@@ -1,5 +1,4 @@
 using System.ComponentModel.DataAnnotations;
-using System.Runtime.Serialization;
 using System.Text.Json.Serialization;
 
 namespace Manager.Models
@@ -28,13 +27,6 @@ namespace Manager.Models
             [JsonPropertyName("disk")] public string DiskStatus { get; set; }
             [JsonPropertyName("note")] public string Notice { get; set; }
             [JsonPropertyName("big")] public string BigFileUrl { get; set; }
-        }
-
-        public enum ReleaseType
-        {
-            [EnumMember(Value = "os")] Os,
-            [EnumMember(Value = "app")] App,
-            [EnumMember(Value = "font")] Font
         }
 
         public class UrlItem

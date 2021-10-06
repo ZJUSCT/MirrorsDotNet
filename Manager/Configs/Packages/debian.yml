@@ -6,4 +6,5 @@ HelpUrl: /help/debian
 
 Image: xxx/xxxx
 Upstream: https://mirrors.bfsu.edu.cn/debian
+#ExtraCommand:
 Cron: 0 * * * * *
