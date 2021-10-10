@@ -29,12 +29,6 @@ namespace Manager.Models
             [JsonPropertyName("big")] public string BigFileUrl { get; set; }
         }
 
-        public class UrlItem
-        {
-            [JsonPropertyName("name")] public string Name { get; set; }
-            [JsonPropertyName("url")] public string Url { get; set; }
-        }
-
         public class ReleaseInfo
         {
             [JsonPropertyName("distro")] public string MappedName { get; set; }
