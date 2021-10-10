@@ -12,6 +12,7 @@
         <PackageReference Include="Microsoft.EntityFrameworkCore.Sqlite.Design" Version="1.1.6" />
         <PackageReference Include="NetEscapades.Configuration.Yaml" Version="2.1.0" />
         <PackageReference Include="Swashbuckle.AspNetCore" Version="6.2.2" />
+        <PackageReference Include="YamlDotNet" Version="11.2.1" />
     </ItemGroup>
 
 </Project>

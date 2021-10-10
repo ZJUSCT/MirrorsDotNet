@@ -1,9 +1,14 @@
 # Example Config for Releases
 MappedName: Debian ISO
-Type: os
+Category: os
 BaseUrl: /debian-iso # real urls will be generated -> baseUrl + fileName
 
 Image: xxx/xxxx
 Upstream: https://mirrors.bfsu.edu.cn/debian
-#ExtraCommand:
+# ExtraCommand:
 Cron: 0 * * * * *
+
+# [Ref] https://github.com/tuna/mirror-web/blob/master/geninfo/genisolist.ini
+FilePath: xxx/debian-iso
+Pattern: debian-([0-9.]+)-(\w+)-(\w+)-CD-1.iso
+SortBy: $1
