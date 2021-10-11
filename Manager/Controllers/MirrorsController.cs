@@ -3,6 +3,7 @@ using Manager.Models;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 
 namespace Manager.Controllers
 {
@@ -13,10 +14,10 @@ namespace Manager.Controllers
         private readonly ILogger<MirrorsController> _logger;
         private readonly MirrorZ.SiteInfo _siteInfo;
 
-        public MirrorsController(ILogger<MirrorsController> logger, IConfiguration configuration)
+        public MirrorsController(ILogger<MirrorsController> logger, IOptions<MirrorZ.SiteInfo> siteInfo)
         {
             _logger = logger;
-            _siteInfo = configuration.GetSection("SiteInfo").Get<MirrorZ.SiteInfo>();
+            _siteInfo = siteInfo.Value;
         }
 
         [HttpGet]
@@ -44,7 +45,7 @@ namespace Manager.Controllers
                     {
                         MappedName = "MeshLab",
                         Category = ReleaseType.App,
-                        UrlItems = new UrlItem[]
+                        UrlItems = new MirrorZ.UrlItem[]
                         {
                             new()
                             {
