@@ -51,6 +51,34 @@ namespace Manager
                 app.UseSwagger();
                 app.UseSwaggerUI(c => c.SwaggerEndpoint("/swagger/v1/swagger.json", "Mirrors.NET Manager v1"));
             }
+            
+            using (var serviceScope = app.ApplicationServices.GetService<IServiceScopeFactory>()?.CreateScope())
+            {
+                if (serviceScope != null)
+                {
+                    var context = serviceScope.ServiceProvider.GetRequiredService<MirrorConfigContext>();
+                    context.Database.EnsureCreated();
+
+                    context.Packages.Add(new MirrorPackage
+                    {
+                        Name = "debian",
+                        Url = "/debian",
+                        MappedName = "debian",
+                        Description = "Debian packages",
+                        HelpUrl = "/help/debian",
+                        Upstream = "https://mirrors.tuna.tsinghua.edu.cn"
+                    });
+
+                    context.Releases.Add(new MirrorRelease
+                    {
+                        Name = "meshlab",
+                        MappedName = "MeshLab",
+                        Category = ReleaseType.App,
+                    });
+
+                    context.SaveChanges();
+                }
+            }
 
             app.UseRouting();
 

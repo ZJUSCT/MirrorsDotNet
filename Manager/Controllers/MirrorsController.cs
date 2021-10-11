@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Linq;
 using Manager.Models;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration;
@@ -13,11 +14,13 @@ namespace Manager.Controllers
     {
         private readonly ILogger<MirrorsController> _logger;
         private readonly MirrorZ.SiteInfo _siteInfo;
+        private readonly MirrorConfigContext _mirrorConfigs;
 
-        public MirrorsController(ILogger<MirrorsController> logger, IOptions<MirrorZ.SiteInfo> siteInfo)
+        public MirrorsController(ILogger<MirrorsController> logger, IOptions<MirrorZ.SiteInfo> siteInfo, MirrorConfigContext configContext)
         {
             _logger = logger;
             _siteInfo = siteInfo.Value;
+            _mirrorConfigs = configContext;
         }
 
         [HttpGet]
