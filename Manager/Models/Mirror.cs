@@ -35,13 +35,7 @@ namespace Manager.Models
         public string ExtraCommand { get; set; }
     }
 
-    public class UrlItem
-    {
-        [JsonPropertyName("name")] public string Name { get; set; }
-        [JsonPropertyName("url")] public string Url { get; set; }
-    }
-
-    public class MirrorPackages : MirrorBase
+    public class MirrorPackage : MirrorBase
     {
         public string Description { get; set; }
         public string HelpUrl { get; set; }
