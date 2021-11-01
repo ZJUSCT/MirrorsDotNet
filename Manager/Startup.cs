@@ -35,6 +35,7 @@ namespace Manager
         {
             services.Configure<MirrorZ.SiteInfo>(Configuration.GetSection("SiteInfo"));
             services.AddDbContext<MirrorConfigContext>(opt => opt.UseInMemoryDatabase("MirrorConfigs"));
+            services.AddAutoMapper(typeof(MapperProfile));
             services.AddControllers()
                 .AddJsonOptions(options =>
                 {
