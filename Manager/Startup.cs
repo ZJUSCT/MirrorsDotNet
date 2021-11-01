@@ -1,10 +1,12 @@
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using System.Threading.Tasks;
 using Manager.Models;
+using Manager.Utils;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.HttpsPolicy;
@@ -15,6 +17,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Microsoft.OpenApi.Models;
+using YamlDotNet.Serialization.NamingConventions;
 
 namespace Manager
 {
@@ -56,25 +59,31 @@ namespace Manager
             {
                 if (serviceScope != null)
                 {
+                    var logger = serviceScope.ServiceProvider.GetRequiredService<ILogger<Startup>>();
                     var context = serviceScope.ServiceProvider.GetRequiredService<MirrorConfigContext>();
                     context.Database.EnsureCreated();
 
-                    context.Packages.Add(new MirrorPackage
-                    {
-                        Name = "debian",
-                        Url = "/debian",
-                        MappedName = "debian",
-                        Description = "Debian packages",
-                        HelpUrl = "/help/debian",
-                        Upstream = "https://mirrors.tuna.tsinghua.edu.cn"
-                    });
+                    var deserializer = new YamlDotNet.Serialization.DeserializerBuilder().Build();
 
-                    context.Releases.Add(new MirrorRelease
+                    // Load Release Configs
+                    var releaseDirInfo = new DirectoryInfo(@"Configs/Releases");
+                    foreach (var fi in releaseDirInfo.GetFiles("*.yml", SearchOption.AllDirectories))
                     {
-                        Name = "meshlab",
-                        MappedName = "MeshLab",
-                        Category = ReleaseType.App,
-                    });
+                        var releaseConfig = deserializer.Deserialize<MirrorRelease>(File.ReadAllText(fi.FullName));
+                        releaseConfig.Name = Path.GetFileNameWithoutExtension(fi.Name);
+                        context.Releases.Add(releaseConfig);
+                        logger.LogInformation("Loaded Release Config {ConfigName}", releaseConfig.Name);
+                    }
+                    
+                    // Load Package Configs
+                    var packageDirInfo = new DirectoryInfo(@"Configs/Packages");
+                    foreach (var fi in packageDirInfo.GetFiles("*.yml", SearchOption.AllDirectories))
+                    {
+                        var packageConfig = deserializer.Deserialize<MirrorPackage>(File.ReadAllText(fi.FullName));
+                        packageConfig.Name = Path.GetFileNameWithoutExtension(fi.Name);
+                        context.Packages.Add(packageConfig);
+                        logger.LogInformation("Loaded Package Config {ConfigName}", packageConfig.Name);
+                    }
 
                     context.SaveChanges();
                 }

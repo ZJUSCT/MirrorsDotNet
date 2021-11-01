@@ -4,7 +4,7 @@ Description: Debian packages
 Url: /debian
 HelpUrl: /help/debian
 
-Image: xxx/xxxx
+ProviderImage: xxx/xxxx
 Upstream: https://mirrors.bfsu.edu.cn/debian
 # ExtraCommand:
 Cron: 0 * * * * *
