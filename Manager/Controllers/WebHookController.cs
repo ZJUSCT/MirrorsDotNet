@@ -27,7 +27,7 @@ public class WebHookController : ControllerBase
     [HttpPatch("package/{packageName}")]
     public void UpdatePackageSyncStatus(string packageName)
     {
-        ;
+        ; // TODO: Pure update logic
     }
 
     /// <summary>
@@ -37,6 +37,6 @@ public class WebHookController : ControllerBase
     [HttpPost("release/{releaseName}")]
     public void UpdateReleaseSyncStatus(string releaseName)
     {
-        ;
+        ; // TODO: Rescan, update index
     }
 }
