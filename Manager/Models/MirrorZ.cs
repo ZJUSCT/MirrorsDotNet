@@ -3,11 +3,11 @@ using System.Text.Json.Serialization;
 
 namespace Manager.Models;
 
-/*
- * MirrorZ DataFormat
- * version: 1.5
- * ref: https://github.com/mirrorz-org/mirrorz#data-format-v15-draft
- */
+/// <summary>
+/// MirrorZ DataFormat
+/// version: 1.5
+/// ref: https://github.com/mirrorz-org/mirrorz#data-format-v15-draft
+/// </summary>
 public class MirrorZ
 {
     private const double FormatVersion = 1.5;

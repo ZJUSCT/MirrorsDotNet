@@ -1,3 +1,5 @@
+#define OLD_SHIM
+
 using System.IO;
 using System.Text.Json;
 using System.Text.Json.Serialization;
@@ -28,7 +30,11 @@ public class Startup
     public void ConfigureServices(IServiceCollection services)
     {
         services.Configure<MirrorZ.SiteInfo>(Configuration.GetSection("SiteInfo"));
+#if OLD_SHIM
+        services.AddDbContext<MirrorConfigContext>(opt => opt.UseSqlite("Data Source=mirrors2.db"));
+#else
         services.AddDbContext<MirrorConfigContext>(opt => opt.UseInMemoryDatabase("MirrorConfigs"));
+#endif
         services.AddAutoMapper(typeof(MapperProfile));
         services.AddControllers()
             .AddJsonOptions(options =>
@@ -49,7 +55,7 @@ public class Startup
             app.UseSwagger();
             app.UseSwaggerUI(c => c.SwaggerEndpoint("/swagger/v1/swagger.json", "Mirrors.NET Manager v1"));
         }
-            
+
         using (var serviceScope = app.ApplicationServices.GetService<IServiceScopeFactory>()?.CreateScope())
         {
             if (serviceScope != null)
@@ -66,16 +72,22 @@ public class Startup
                 {
                     var releaseConfig = deserializer.Deserialize<MirrorRelease>(File.ReadAllText(fi.FullName));
                     releaseConfig.Name = Path.GetFileNameWithoutExtension(fi.Name);
+#if OLD_SHIM
+                    // TODO: update if existed
+#endif
                     context.Releases.Add(releaseConfig);
                     logger.LogInformation("Loaded Release Config {ConfigName}", releaseConfig.Name);
                 }
-                    
+
                 // Load Package Configs
                 var packageDirInfo = new DirectoryInfo(@"Configs/Packages");
                 foreach (var fi in packageDirInfo.GetFiles("*.yml", SearchOption.AllDirectories))
                 {
                     var packageConfig = deserializer.Deserialize<MirrorPackage>(File.ReadAllText(fi.FullName));
                     packageConfig.Name = Path.GetFileNameWithoutExtension(fi.Name);
+#if OLD_SHIM
+                    // TODO: update if existed
+#endif
                     context.Packages.Add(packageConfig);
                     logger.LogInformation("Loaded Package Config {ConfigName}", packageConfig.Name);
                 }

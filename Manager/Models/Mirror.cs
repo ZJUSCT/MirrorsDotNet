@@ -1,3 +1,5 @@
+#define OLD_SHIM
+
 using System.ComponentModel.DataAnnotations;
 using System.Runtime.Serialization;
 
@@ -37,12 +39,15 @@ public class MirrorPackage : MirrorBase
 {
     public string Description { get; set; }
     public string HelpUrl { get; set; }
+#if OLD_SHIM
+    public string Status { get; set; }
+#endif
 }
 
 public class MirrorRelease : MirrorBase
 {
     public ReleaseType Category { get; set; }
-        
+
     // Used to Generate File List
     public string FilePath { get; set; }
     public string Pattern { get; set; }

@@ -9,3 +9,6 @@ riderModule.iml
 
 # macOS
 .DS_Store
+
+# SQLite
+*.db*

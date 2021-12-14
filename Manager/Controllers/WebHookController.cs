@@ -1,13 +1,14 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿#define OLD_SHIM
+
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 
 namespace Manager.Controllers;
 
-/**
- * This webhook controller is a temporary shim for the old-mirror scripts.
- * It collects sync status from cron scripts.
- */
-
+/// <summary>
+///  This webhook controller is a temporary shim for the old-mirror scripts.
+/// It collects sync status from cron scripts.
+/// </summary>
 [ApiController]
 [Route("[controller]")]
 public class WebHookController : ControllerBase
@@ -19,13 +20,21 @@ public class WebHookController : ControllerBase
         _logger = logger;
     }
 
+    /// <summary>
+    /// Update Package Status
+    /// </summary>
+    /// <param name="packageName"></param>
     [HttpPatch("package/{packageName}")]
     public void UpdatePackageSyncStatus(string packageName)
     {
         ;
     }
 
-    [HttpPatch("package/{releaseName}")]
+    /// <summary>
+    /// Trig the manager to re-scan the release dir.
+    /// </summary>
+    /// <param name="releaseName"></param>
+    [HttpPost("release/{releaseName}")]
     public void UpdateReleaseSyncStatus(string releaseName)
     {
         ;
