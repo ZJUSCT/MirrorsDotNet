@@ -1,23 +1,22 @@
 using System;
 using System.ComponentModel.DataAnnotations;
 
-namespace Manager.Models
+namespace Manager.Models;
+
+public enum JobState
 {
-    public enum JobState
-    {
-        Created,
-        Started,
-        Finished,
-        Failed
-    }
+    Created,
+    Started,
+    Finished,
+    Failed
+}
     
-    public class SyncJob
-    {
-        [Key]
-        public int Id { get; set; }
-        public MirrorBase MirrorBase { get; set; }
-        public JobState State { get; set; }
-        public DateTime StartTime { get; set; }
-        public DateTime EndTime { get; set; }
-    }
+public class SyncJob
+{
+    [Key]
+    public int Id { get; set; }
+    public MirrorBase MirrorBase { get; set; }
+    public JobState State { get; set; }
+    public DateTime StartTime { get; set; }
+    public DateTime EndTime { get; set; }
 }

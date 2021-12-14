@@ -1,14 +1,13 @@
 using AutoMapper;
 using Manager.Models;
 
-namespace Manager.Utils
+namespace Manager.Utils;
+
+public class MapperProfile: Profile
 {
-    public class MapperProfile: Profile
+    public MapperProfile()
     {
-        public MapperProfile()
-        {
-            CreateMap<MirrorRelease, MirrorZ.ReleaseInfo>();
-            CreateMap<MirrorPackage, MirrorZ.PackageInfo>();
-        }
+        CreateMap<MirrorRelease, MirrorZ.ReleaseInfo>();
+        CreateMap<MirrorPackage, MirrorZ.PackageInfo>();
     }
 }
