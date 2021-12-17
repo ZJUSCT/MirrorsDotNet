@@ -76,12 +76,17 @@ public class Startup
                     releaseConfig.Name = Path.GetFileNameWithoutExtension(fi.Name);
                     configContext.Releases.Add(releaseConfig);
 #if OLD_SHIM
-                    // TODO: update if existed
-                    var releaseItem = mapper.Map<MirrorZ.ReleaseInfo>(releaseConfig);
-                    statusContext.Releases.Add(releaseItem);
-#if DEBUG
-                    logger.LogDebug("{PlaceHolder}", releaseItem.MappedName);
-#endif
+                    var releaseItem = statusContext.Releases.Find(releaseConfig.MappedName);
+                    if (releaseItem == null)
+                    {
+                        var newReleaseItem = mapper.Map<MirrorZ.ReleaseInfo>(releaseConfig);
+                        statusContext.Releases.Add(newReleaseItem);
+                    }
+                    else
+                    {
+                        // update if existed
+                        releaseItem.Category = releaseConfig.Category;
+                    }
 #endif
                     logger.LogInformation("Loaded Release Config {ConfigName}", releaseConfig.Name);
                 }
@@ -94,12 +99,20 @@ public class Startup
                     packageConfig.Name = Path.GetFileNameWithoutExtension(fi.Name);
                     configContext.Packages.Add(packageConfig);
 #if OLD_SHIM
-                    // TODO: update if existed
-                    var packageItem = mapper.Map<MirrorZ.PackageInfo>(packageConfig);
-                    statusContext.Packages.Add(packageItem);
-#if DEBUG
-                    logger.LogDebug("{PlaceHolder}", packageItem.MappedName);
-#endif
+                    var packageItem = statusContext.Packages.Find(packageConfig.MappedName);
+                    if (packageItem == null)
+                    {
+                        var newPackageItem = mapper.Map<MirrorZ.PackageInfo>(packageConfig);
+                        statusContext.Packages.Add(newPackageItem);
+                    }
+                    else
+                    {
+                        // update if existed
+                        packageItem.Description = packageConfig.Description;
+                        packageItem.Url = packageConfig.Url;
+                        packageItem.HelpUrl = packageConfig.HelpUrl;
+                        packageItem.Upstream = packageConfig.Upstream;
+                    }
 #endif
                     logger.LogInformation("Loaded Package Config {ConfigName}", packageConfig.Name);
                 }
