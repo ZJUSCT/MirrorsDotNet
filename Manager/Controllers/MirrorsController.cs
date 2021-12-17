@@ -8,7 +8,7 @@ using Microsoft.Extensions.Options;
 namespace Manager.Controllers;
 
 [ApiController]
-[Route("[controller]")]
+[Route("mirrors")]
 public class MirrorsController : ControllerBase
 {
     private readonly ILogger<MirrorsController> _logger;

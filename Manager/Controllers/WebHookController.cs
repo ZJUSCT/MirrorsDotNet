@@ -1,5 +1,6 @@
 ﻿#define OLD_SHIM
 
+using Manager.Models;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 
@@ -10,14 +11,19 @@ namespace Manager.Controllers;
 /// It collects sync status from cron scripts.
 /// </summary>
 [ApiController]
-[Route("[controller]")]
+[Route("webhook")]
 public class WebHookController : ControllerBase
 {
     private readonly ILogger<WebHookController> _logger;
+    private readonly MirrorConfigContext _mirrorConfigContext;
+    private readonly MirrorStatusContext _mirrorStatusContext;
 
-    public WebHookController(ILogger<WebHookController> logger)
+    public WebHookController(ILogger<WebHookController> logger, MirrorConfigContext mirrorConfigContext,
+        MirrorStatusContext mirrorStatusContext)
     {
         _logger = logger;
+        _mirrorConfigContext = mirrorConfigContext;
+        _mirrorStatusContext = mirrorStatusContext;
     }
 
     /// <summary>
@@ -38,5 +44,14 @@ public class WebHookController : ControllerBase
     public void UpdateReleaseSyncStatus(string releaseName)
     {
         ; // TODO: Rescan, update index
+    }
+
+    /// <summary>
+    /// Hot reload configs
+    /// </summary>
+    [HttpPost("reload")]
+    public void ReloadConfigs()
+    {
+        ; // TODO: Reload configs
     }
 }
