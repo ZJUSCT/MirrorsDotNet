@@ -1,6 +1,3 @@
-#define OLD_SHIM
-
-using System.IO;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using AutoMapper;
@@ -14,7 +11,6 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Microsoft.OpenApi.Models;
-using YamlDotNet.Serialization;
 
 namespace Manager;
 
@@ -66,59 +62,8 @@ public class Startup
                 configContext.Database.EnsureCreated();
                 statusContext.Database.EnsureCreated();
 
-                var deserializer = new DeserializerBuilder().Build();
-
-                // Load Release Configs
-                var releaseDirInfo = new DirectoryInfo(@"Configs/Releases");
-                foreach (var fi in releaseDirInfo.GetFiles("*.yml", SearchOption.AllDirectories))
-                {
-                    var releaseConfig = deserializer.Deserialize<MirrorRelease>(File.ReadAllText(fi.FullName));
-                    releaseConfig.Name = Path.GetFileNameWithoutExtension(fi.Name);
-                    configContext.Releases.Add(releaseConfig);
-#if OLD_SHIM
-                    var releaseItem = statusContext.Releases.Find(releaseConfig.MappedName);
-                    if (releaseItem == null)
-                    {
-                        var newReleaseItem = mapper.Map<MirrorZ.ReleaseInfo>(releaseConfig);
-                        statusContext.Releases.Add(newReleaseItem);
-                    }
-                    else
-                    {
-                        // update if existed
-                        releaseItem.Category = releaseConfig.Category;
-                    }
-#endif
-                    logger.LogInformation("Loaded Release Config {ConfigName}", releaseConfig.Name);
-                }
-
-                // Load Package Configs
-                var packageDirInfo = new DirectoryInfo(@"Configs/Packages");
-                foreach (var fi in packageDirInfo.GetFiles("*.yml", SearchOption.AllDirectories))
-                {
-                    var packageConfig = deserializer.Deserialize<MirrorPackage>(File.ReadAllText(fi.FullName));
-                    packageConfig.Name = Path.GetFileNameWithoutExtension(fi.Name);
-                    configContext.Packages.Add(packageConfig);
-#if OLD_SHIM
-                    var packageItem = statusContext.Packages.Find(packageConfig.MappedName);
-                    if (packageItem == null)
-                    {
-                        var newPackageItem = mapper.Map<MirrorZ.PackageInfo>(packageConfig);
-                        statusContext.Packages.Add(newPackageItem);
-                    }
-                    else
-                    {
-                        // update if existed
-                        packageItem.Description = packageConfig.Description;
-                        packageItem.Url = packageConfig.Url;
-                        packageItem.HelpUrl = packageConfig.HelpUrl;
-                        packageItem.Upstream = packageConfig.Upstream;
-                    }
-#endif
-                    logger.LogInformation("Loaded Package Config {ConfigName}", packageConfig.Name);
-                }
-
-                configContext.SaveChanges();
-                statusContext.SaveChanges();
+                var task = ConfigLoader.LoadConfigAsync(configContext, statusContext, mapper, logger);
+                task.Wait();
             }
         }
 

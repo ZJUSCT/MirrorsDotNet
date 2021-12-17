@@ -1,6 +1,9 @@
 ﻿#define OLD_SHIM
 
+using System.Threading.Tasks;
+using AutoMapper;
 using Manager.Models;
+using Manager.Utils;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 
@@ -17,15 +20,18 @@ public class WebHookController : ControllerBase
     private readonly ILogger<WebHookController> _logger;
     private readonly MirrorConfigContext _mirrorConfigContext;
     private readonly MirrorStatusContext _mirrorStatusContext;
+    private readonly IMapper _mapper;
 
     public WebHookController(ILogger<WebHookController> logger, MirrorConfigContext mirrorConfigContext,
-        MirrorStatusContext mirrorStatusContext)
+        MirrorStatusContext mirrorStatusContext, IMapper mapper)
     {
         _logger = logger;
         _mirrorConfigContext = mirrorConfigContext;
         _mirrorStatusContext = mirrorStatusContext;
+        _mapper = mapper;
     }
 
+#if OLD_SHIM
     /// <summary>
     /// Update Package Status
     /// </summary>
@@ -45,13 +51,15 @@ public class WebHookController : ControllerBase
     {
         ; // TODO: Rescan, update index
     }
+#endif
 
     /// <summary>
     /// Hot reload configs
     /// </summary>
     [HttpPost("reload")]
-    public void ReloadConfigs()
+    public async Task ReloadConfigs()
     {
-        ; // TODO: Reload configs
+        _logger.LogInformation("Reloading configs");
+        await ConfigLoader.LoadConfigAsync(_mirrorConfigContext, _mirrorStatusContext, _mapper, _logger);
     }
 }
