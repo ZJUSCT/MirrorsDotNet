@@ -39,9 +39,6 @@ public class MirrorPackage : MirrorBase
 {
     public string Description { get; set; }
     public string HelpUrl { get; set; }
-#if OLD_SHIM
-    public string Status { get; set; }
-#endif
 }
 
 public class MirrorRelease : MirrorBase
