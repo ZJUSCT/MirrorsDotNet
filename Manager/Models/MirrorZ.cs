@@ -31,20 +31,20 @@ public class MirrorZ
 
     public class UrlItem
     {
-        [JsonPropertyName("name")] public string Name { get; set; }
+        [Key] [JsonPropertyName("name")] public string Name { get; set; }
         [JsonPropertyName("url")] public string Url { get; set; }
     }
         
     public class ReleaseInfo
     {
-        [JsonPropertyName("distro")] public string MappedName { get; set; }
+        [Key] [JsonPropertyName("distro")] public string MappedName { get; set; }
         [JsonPropertyName("category")] public ReleaseType Category { get; set; }
         [JsonPropertyName("urls")] public UrlItem[] UrlItems { get; set; }
     }
 
     public class PackageInfo
     {
-        [JsonPropertyName("cname")] public string MappedName { get; set; }
+        [Key] [JsonPropertyName("cname")] public string MappedName { get; set; }
         [JsonPropertyName("desc")] public string Description { get; set; }
         [JsonPropertyName("url")] public string Url { get; set; }
         [JsonPropertyName("status")] public string Status { get; set; }

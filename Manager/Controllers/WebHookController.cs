@@ -23,7 +23,7 @@ public class WebHookController : ControllerBase
     /// <summary>
     /// Update Package Status
     /// </summary>
-    /// <param name="packageName"></param>
+    /// <param name="packageName">package name (should match with config file)</param>
     [HttpPatch("package/{packageName}")]
     public void UpdatePackageSyncStatus(string packageName)
     {
@@ -33,7 +33,7 @@ public class WebHookController : ControllerBase
     /// <summary>
     /// Trig the manager to re-scan the release dir.
     /// </summary>
-    /// <param name="releaseName"></param>
+    /// <param name="releaseName">release name (should match config file)</param>
     [HttpPost("release/{releaseName}")]
     public void UpdateReleaseSyncStatus(string releaseName)
     {

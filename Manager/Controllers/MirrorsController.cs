@@ -21,6 +21,10 @@ public class MirrorsController : ControllerBase
         _mirrorConfigs = configContext;
     }
 
+    /// <summary>
+    /// Mirror status in MirrorZ format
+    /// </summary>
+    /// <returns></returns>
     [HttpGet]
     public MirrorZ.DataFormat Get()
     {

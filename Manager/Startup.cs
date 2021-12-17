@@ -3,6 +3,7 @@
 using System.IO;
 using System.Text.Json;
 using System.Text.Json.Serialization;
+using AutoMapper;
 using Manager.Models;
 using Manager.Utils;
 using Microsoft.AspNetCore.Builder;
@@ -30,11 +31,8 @@ public class Startup
     public void ConfigureServices(IServiceCollection services)
     {
         services.Configure<MirrorZ.SiteInfo>(Configuration.GetSection("SiteInfo"));
-#if OLD_SHIM
-        services.AddDbContext<MirrorConfigContext>(opt => opt.UseSqlite("Data Source=mirrors2.db"));
-#else
         services.AddDbContext<MirrorConfigContext>(opt => opt.UseInMemoryDatabase("MirrorConfigs"));
-#endif
+        services.AddDbContext<MirrorStatusContext>(opt => opt.UseSqlite("Data Source=mirror-status.db"));
         services.AddAutoMapper(typeof(MapperProfile));
         services.AddControllers()
             .AddJsonOptions(options =>
@@ -61,8 +59,12 @@ public class Startup
             if (serviceScope != null)
             {
                 var logger = serviceScope.ServiceProvider.GetRequiredService<ILogger<Startup>>();
-                var context = serviceScope.ServiceProvider.GetRequiredService<MirrorConfigContext>();
-                context.Database.EnsureCreated();
+                var configContext = serviceScope.ServiceProvider.GetRequiredService<MirrorConfigContext>();
+                var statusContext = serviceScope.ServiceProvider.GetRequiredService<MirrorStatusContext>();
+                var mapper = serviceScope.ServiceProvider.GetRequiredService<IMapper>();
+
+                configContext.Database.EnsureCreated();
+                statusContext.Database.EnsureCreated();
 
                 var deserializer = new DeserializerBuilder().Build();
 
@@ -72,10 +74,15 @@ public class Startup
                 {
                     var releaseConfig = deserializer.Deserialize<MirrorRelease>(File.ReadAllText(fi.FullName));
                     releaseConfig.Name = Path.GetFileNameWithoutExtension(fi.Name);
+                    configContext.Releases.Add(releaseConfig);
 #if OLD_SHIM
                     // TODO: update if existed
+                    var releaseItem = mapper.Map<MirrorZ.ReleaseInfo>(releaseConfig);
+                    statusContext.Releases.Add(releaseItem);
+#if DEBUG
+                    logger.LogDebug("{PlaceHolder}", releaseItem.MappedName);
 #endif
-                    context.Releases.Add(releaseConfig);
+#endif
                     logger.LogInformation("Loaded Release Config {ConfigName}", releaseConfig.Name);
                 }
 
@@ -85,14 +92,20 @@ public class Startup
                 {
                     var packageConfig = deserializer.Deserialize<MirrorPackage>(File.ReadAllText(fi.FullName));
                     packageConfig.Name = Path.GetFileNameWithoutExtension(fi.Name);
+                    configContext.Packages.Add(packageConfig);
 #if OLD_SHIM
                     // TODO: update if existed
+                    var packageItem = mapper.Map<MirrorZ.PackageInfo>(packageConfig);
+                    statusContext.Packages.Add(packageItem);
+#if DEBUG
+                    logger.LogDebug("{PlaceHolder}", packageItem.MappedName);
 #endif
-                    context.Packages.Add(packageConfig);
+#endif
                     logger.LogInformation("Loaded Package Config {ConfigName}", packageConfig.Name);
                 }
 
-                context.SaveChanges();
+                configContext.SaveChanges();
+                statusContext.SaveChanges();
             }
         }
 
