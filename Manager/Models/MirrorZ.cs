@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.Text.Json.Serialization;
 
@@ -39,7 +40,7 @@ public class MirrorZ
     {
         [Key] [JsonPropertyName("distro")] public string MappedName { get; set; }
         [JsonPropertyName("category")] public ReleaseType Category { get; set; }
-        [JsonPropertyName("urls")] public UrlItem[] UrlItems { get; set; }
+        [JsonPropertyName("urls")] public List<UrlItem> UrlItems { get; set; }
     }
 
     public class PackageInfo
@@ -57,7 +58,7 @@ public class MirrorZ
     {
         [JsonPropertyName("version")] public double Version { get; } = FormatVersion;
         [JsonPropertyName("site")] public SiteInfo Site { get; set; }
-        [JsonPropertyName("info")] public ReleaseInfo[] Releases { get; set; }
-        [JsonPropertyName("mirrors")] public PackageInfo[] Packages { get; set; }
+        [JsonPropertyName("info")] public List<ReleaseInfo> Releases { get; set; }
+        [JsonPropertyName("mirrors")] public List<PackageInfo> Packages { get; set; }
     }
 }

@@ -1,5 +1,7 @@
-﻿using Manager.Models;
+﻿using System.Threading.Tasks;
+using Manager.Models;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 
@@ -11,14 +13,14 @@ public class MirrorsController : ControllerBase
 {
     private readonly ILogger<MirrorsController> _logger;
     private readonly MirrorZ.SiteInfo _siteInfo;
-    private readonly MirrorConfigContext _mirrorConfigs;
+    private readonly MirrorStatusContext _mirrorStatusContext;
 
     public MirrorsController(ILogger<MirrorsController> logger, IOptions<MirrorZ.SiteInfo> siteInfo,
-        MirrorConfigContext configContext)
+        MirrorStatusContext statusContext)
     {
         _logger = logger;
         _siteInfo = siteInfo.Value;
-        _mirrorConfigs = configContext;
+        _mirrorStatusContext = statusContext;
     }
 
     /// <summary>
@@ -26,40 +28,15 @@ public class MirrorsController : ControllerBase
     /// </summary>
     /// <returns></returns>
     [HttpGet]
-    public MirrorZ.DataFormat Get()
+    public async Task<MirrorZ.DataFormat> Get()
     {
+        var packageList = await _mirrorStatusContext.Packages.ToListAsync();
+        var releaseList = await _mirrorStatusContext.Releases.ToListAsync();
         var res = new MirrorZ.DataFormat
         {
             Site = _siteInfo,
-            Packages = new MirrorZ.PackageInfo[]
-            {
-                new()
-                {
-                    Url = "/debian",
-                    MappedName = "debian",
-                    Description = "Debian packages",
-                    HelpUrl = "/help/debian",
-                    Size = "100G",
-                    Status = "S",
-                    Upstream = "https://mirrors.tuna.tsinghua.edu.cn"
-                }
-            },
-            Releases = new MirrorZ.ReleaseInfo[]
-            {
-                new()
-                {
-                    MappedName = "MeshLab",
-                    Category = ReleaseType.App,
-                    UrlItems = new MirrorZ.UrlItem[]
-                    {
-                        new()
-                        {
-                            Url = "CG/meshlab-1.0.zip",
-                            Name = "v1.0"
-                        }
-                    }
-                }
-            }
+            Packages = packageList,
+            Releases = releaseList
         };
         return res;
     }
