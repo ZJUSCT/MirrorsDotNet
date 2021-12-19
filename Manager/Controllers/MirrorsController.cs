@@ -12,10 +12,10 @@ namespace Manager.Controllers;
 public class MirrorsController : ControllerBase
 {
     private readonly ILogger<MirrorsController> _logger;
-    private readonly MirrorZ.SiteInfo _siteInfo;
+    private readonly MirrorStatus.SiteInfo _siteInfo;
     private readonly MirrorStatusContext _mirrorStatusContext;
 
-    public MirrorsController(ILogger<MirrorsController> logger, IOptions<MirrorZ.SiteInfo> siteInfo,
+    public MirrorsController(ILogger<MirrorsController> logger, IOptions<MirrorStatus.SiteInfo> siteInfo,
         MirrorStatusContext statusContext)
     {
         _logger = logger;
@@ -28,11 +28,11 @@ public class MirrorsController : ControllerBase
     /// </summary>
     /// <returns></returns>
     [HttpGet]
-    public async Task<MirrorZ.DataFormat> Get()
+    public async Task<MirrorStatus.DataFormat> Get()
     {
         var packageList = await _mirrorStatusContext.Packages.ToListAsync();
         var releaseList = await _mirrorStatusContext.Releases.ToListAsync();
-        var res = new MirrorZ.DataFormat
+        var res = new MirrorStatus.DataFormat
         {
             Site = _siteInfo,
             Packages = packageList,

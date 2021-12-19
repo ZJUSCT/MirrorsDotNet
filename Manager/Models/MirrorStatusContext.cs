@@ -13,6 +13,6 @@ public class MirrorStatusContext : DbContext
     {
     }
 
-    public DbSet<MirrorZ.PackageInfo> Packages { get; set; }
-    public DbSet<MirrorZ.ReleaseInfo> Releases { get; set; }
+    public DbSet<MirrorStatus.PackageInfoDto> Packages { get; set; }
+    public DbSet<MirrorStatus.ReleaseInfo> Releases { get; set; }
 }

@@ -26,7 +26,7 @@ public class Startup
     // This method gets called by the runtime. Use this method to add services to the container.
     public void ConfigureServices(IServiceCollection services)
     {
-        services.Configure<MirrorZ.SiteInfo>(Configuration.GetSection("SiteInfo"));
+        services.Configure<MirrorStatus.SiteInfo>(Configuration.GetSection("SiteInfo"));
         services.AddDbContext<MirrorConfigContext>(opt => opt.UseInMemoryDatabase("MirrorConfigs"));
         services.AddDbContext<MirrorStatusContext>(opt => opt.UseSqlite("Data Source=mirror-status.db"));
         services.AddAutoMapper(typeof(MapperProfile));

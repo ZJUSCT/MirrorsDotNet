@@ -33,7 +33,7 @@ public class ConfigLoader
             var releaseItem = await statusContext.Releases.FindAsync(releaseConfig.MappedName);
             if (releaseItem == null)
             {
-                var newReleaseItem = mapper.Map<MirrorZ.ReleaseInfo>(releaseConfig);
+                var newReleaseItem = mapper.Map<MirrorStatus.ReleaseInfo>(releaseConfig);
                 await statusContext.Releases.AddAsync(newReleaseItem);
             }
             else
@@ -57,7 +57,7 @@ public class ConfigLoader
             var packageItem = await statusContext.Packages.FindAsync(packageConfig.MappedName);
             if (packageItem == null)
             {
-                var newPackageItem = mapper.Map<MirrorZ.PackageInfo>(packageConfig);
+                var newPackageItem = mapper.Map<MirrorStatus.PackageInfoDto>(packageConfig);
                 await statusContext.Packages.AddAsync(newPackageItem);
             }
             else

@@ -4,12 +4,7 @@ using System.Text.Json.Serialization;
 
 namespace Manager.Models;
 
-/// <summary>
-/// MirrorZ DataFormat
-/// version: 1.5
-/// ref: https://github.com/mirrorz-org/mirrorz#data-format-v15-draft
-/// </summary>
-public class MirrorZ
+public class MirrorStatus
 {
     private const double FormatVersion = 1.5;
 
@@ -43,7 +38,7 @@ public class MirrorZ
         [JsonPropertyName("urls")] public List<UrlItem> UrlItems { get; set; }
     }
 
-    public class PackageInfo
+    public class PackageInfoDto
     {
         [Key] [JsonPropertyName("cname")] public string MappedName { get; set; }
         [JsonPropertyName("desc")] public string Description { get; set; }
@@ -54,11 +49,16 @@ public class MirrorZ
         [JsonPropertyName("size")] public string Size { get; set; }
     }
 
+    /// <summary>
+    /// MirrorZ DataFormat
+    /// version: 1.5
+    /// ref: https://github.com/mirrorz-org/mirrorz#data-format-v15-draft
+    /// </summary>
     public class DataFormat
     {
         [JsonPropertyName("version")] public double Version { get; } = FormatVersion;
         [JsonPropertyName("site")] public SiteInfo Site { get; set; }
         [JsonPropertyName("info")] public List<ReleaseInfo> Releases { get; set; }
-        [JsonPropertyName("mirrors")] public List<PackageInfo> Packages { get; set; }
+        [JsonPropertyName("mirrors")] public List<PackageInfoDto> Packages { get; set; }
     }
 }
