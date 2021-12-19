@@ -9,6 +9,6 @@ Upstream: https://mirrors.bfsu.edu.cn/debian
 Cron: 0 * * * * *
 
 # [Ref] https://github.com/tuna/mirror-web/blob/master/geninfo/genisolist.ini
-IndexPath: xxx/debian-cd
+IndexPath: /debian-cd
 Pattern: debian-([0-9.]+)-(\w+)-(\w+)-1.iso
 SortBy: $1

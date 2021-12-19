@@ -29,6 +29,7 @@ public class MirrorStatus
     {
         [Key] [JsonPropertyName("name")] public string Name { get; set; }
         [JsonPropertyName("url")] public string Url { get; set; }
+        [JsonIgnore] public string SortKey { get; set; }
     }
         
     public class ReleaseInfo

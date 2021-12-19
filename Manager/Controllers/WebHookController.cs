@@ -1,18 +1,20 @@
 ﻿#define OLD_SHIM
 
 using System;
+using System.Linq;
 using System.Threading.Tasks;
 using AutoMapper;
 using Manager.Models;
 using Manager.Utils;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 
 namespace Manager.Controllers;
 
 /// <summary>
-///  This webhook controller is a temporary shim for the old-mirror scripts.
+/// This webhook controller is a temporary shim for the old-mirror scripts.
 /// It collects sync status from cron scripts.
 /// </summary>
 [ApiController]
@@ -96,9 +98,38 @@ public class WebHookController : ControllerBase
     /// </summary>
     /// <param name="releaseName">release name (should match config file)</param>
     [HttpPost("release/{releaseName}")]
-    public void UpdateReleaseSyncStatus(string releaseName)
+    public async Task<IActionResult> UpdateReleaseSyncStatus(string releaseName)
     {
-        ; // TODO: Rescan, update index
+        _logger.LogInformation("UpdateReleaseSyncStatus: {Name}", releaseName);
+
+        var releaseConfig = await _mirrorConfigContext.Releases.FindAsync(releaseName);
+        if (releaseConfig == null)
+        {
+            _logger.LogError("Release {Name} not found in configs", releaseName);
+            return NotFound();
+        }
+
+        var mappedName = releaseConfig.MappedName;
+        // var releaseStatus = _mirrorStatusContext.Releases.Include(release => release.UrlItems).Where(release => release.MappedName.Equals(mappedName));
+        var releaseStatus = await (from release in _mirrorStatusContext.Releases.Include(release => release.UrlItems)
+            where release.MappedName.Equals(mappedName)
+            select release).FirstOrDefaultAsync();
+
+        if (releaseStatus == null)
+        {
+            _logger.LogError("Release {Name} not found in status context, but exists in configs", mappedName);
+            return StatusCode(StatusCodes.Status500InternalServerError, "DB Error");
+        }
+
+        var urlItems = DirWalker.GenIndex(releaseConfig.IndexPath, releaseConfig.Pattern, releaseConfig.SortBy);
+        releaseStatus.UrlItems?.Clear();
+        await _mirrorStatusContext.SaveChangesAsync();
+
+        releaseStatus.UrlItems = urlItems;
+
+        await _mirrorStatusContext.SaveChangesAsync();
+
+        return Ok();
     }
 #endif
 
