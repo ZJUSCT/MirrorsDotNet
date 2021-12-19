@@ -1,9 +1,11 @@
 ﻿#define OLD_SHIM
 
+using System;
 using System.Threading.Tasks;
 using AutoMapper;
 using Manager.Models;
 using Manager.Utils;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 
@@ -22,6 +24,14 @@ public class WebHookController : ControllerBase
     private readonly MirrorStatusContext _mirrorStatusContext;
     private readonly IMapper _mapper;
 
+    public enum Status
+    {
+        Syncing = 1, // to avoid default enum value 0
+        Failed,
+        Success,
+        Pause
+    }
+
     public WebHookController(ILogger<WebHookController> logger, MirrorConfigContext mirrorConfigContext,
         MirrorStatusContext mirrorStatusContext, IMapper mapper)
     {
@@ -36,10 +46,49 @@ public class WebHookController : ControllerBase
     /// Update Package Status
     /// </summary>
     /// <param name="packageName">package name (should match with config file)</param>
+    /// <param name="status">new status</param>
     [HttpPatch("package/{packageName}")]
-    public void UpdatePackageSyncStatus(string packageName)
+    public async Task<IActionResult> UpdatePackageSyncStatus(string packageName,
+        [FromQuery(Name = "status")] Status status)
     {
-        ; // TODO: Pure update logic
+        _logger.LogInformation("UpdatePackageSyncStatus: {Name} {Status}", packageName, status);
+
+        var packageConfig = await _mirrorConfigContext.Packages.FindAsync(packageName);
+        if (packageConfig == null)
+        {
+            _logger.LogError("Package {Name} not found in configs", packageName);
+            return NotFound();
+        }
+
+        var mappedName = packageConfig.MappedName;
+        var packageStatus = await _mirrorStatusContext.Packages.FindAsync(mappedName);
+        if (packageStatus == null)
+        {
+            _logger.LogError("Package {Name} not found in status context, but exists in configs", mappedName);
+            return StatusCode(StatusCodes.Status500InternalServerError, "DB Error");
+        }
+
+        try
+        {
+            var timeStampString = $"{TimeStamp.UnixTimeStamp():D10}";
+            var statusString = status switch
+            {
+                Status.Syncing => "Y",
+                Status.Failed => "F",
+                Status.Success => "S",
+                Status.Pause => "P",
+                _ => throw new ArgumentOutOfRangeException(nameof(status), status, null)
+            };
+            packageStatus.Status = statusString + timeStampString;
+            await _mirrorStatusContext.SaveChangesAsync();
+        }
+        catch (ArgumentOutOfRangeException)
+        {
+            _logger.LogError("Invalid Status {Status}, check if the webhook url is wrong", status);
+            return StatusCode(StatusCodes.Status500InternalServerError, "Invalid Status");
+        }
+
+        return Ok();
     }
 
     /// <summary>
