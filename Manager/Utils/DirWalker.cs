@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text.RegularExpressions;
-using System.Threading.Tasks;
 using Manager.Models;
 
 namespace Manager.Utils;
@@ -27,7 +26,7 @@ public class DirWalker
         // Data structure to hold names of subfolders to be
         // examined for files.
         var dirs = new Stack<string>(20);
-        var root = $"Data/{indexPath}";
+        var root = $"Data{indexPath}";
         var rx = new Regex(regexPattern, RegexOptions.Compiled);
         var res = new List<MirrorStatus.UrlItem>();
 
@@ -35,6 +34,7 @@ public class DirWalker
         {
             throw new ArgumentException();
         }
+
         dirs.Push(root);
 
         while (dirs.Count > 0)
@@ -80,6 +80,7 @@ public class DirWalker
                 Console.WriteLine(e.Message);
                 continue;
             }
+
             // Perform the required action on each file here.
             // Modify this block to perform your required task.
             foreach (var file in files)
@@ -94,7 +95,7 @@ public class DirWalker
                     res.Add(new MirrorStatus.UrlItem
                     {
                         Name = fi.Name,
-                        Url = fi.FullName,
+                        Url = $"/{Path.GetRelativePath("Data", fi.FullName)}",
                         SortKey = Regex.Replace(fi.Name, regexPattern, sortBy)
                     });
                 }
