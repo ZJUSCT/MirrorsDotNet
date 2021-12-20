@@ -120,12 +120,14 @@ public class WebHookController : ControllerBase
             return StatusCode(StatusCodes.Status500InternalServerError, "DB Error");
         }
 
-        var urlItems = DirWalker.GenIndex(releaseConfig.IndexPath, releaseConfig.Pattern, releaseConfig.SortBy);
+        var newUrlItems = DirWalker.GenIndex(releaseConfig.IndexPath, releaseConfig.Pattern, releaseConfig.SortBy);
 
-        foreach (var urlItem in urlItems)
+        // update url items
+        // ref: https://docs.microsoft.com/en-us/ef/core/saving/disconnected-entities#handling-deletes
+        foreach (var urlItem in newUrlItems)
         {
             var existingUrlItem = releaseStatus.UrlItems.FirstOrDefault(url => url.Url.Equals(urlItem.Url));
-            
+
             if (existingUrlItem == null)
             {
                 releaseStatus.UrlItems.Add(urlItem);
@@ -136,7 +138,7 @@ public class WebHookController : ControllerBase
             }
         }
 
-        foreach (var urlItem in releaseStatus.UrlItems.Where(urlItem => !releaseStatus.UrlItems.Any(url => url.Url.Equals(urlItem.Url))))
+        foreach (var urlItem in releaseStatus.UrlItems.Where(urlItem => !newUrlItems.Any(url => url.Url.Equals(urlItem.Url))))
         {
             _mirrorStatusContext.Remove(urlItem);
         }
