@@ -110,10 +110,9 @@ public class WebHookController : ControllerBase
         }
 
         var mappedName = releaseConfig.MappedName;
-        // var releaseStatus = _mirrorStatusContext.Releases.Include(release => release.UrlItems).Where(release => release.MappedName.Equals(mappedName));
-        var releaseStatus = await (from release in _mirrorStatusContext.Releases.Include(release => release.UrlItems)
-            where release.MappedName.Equals(mappedName)
-            select release).FirstOrDefaultAsync();
+        var releaseStatus = await _mirrorStatusContext.Releases
+            .Include(release => release.UrlItems)
+            .FirstOrDefaultAsync(release => release.MappedName.Equals(mappedName));
 
         if (releaseStatus == null)
         {
@@ -122,10 +121,25 @@ public class WebHookController : ControllerBase
         }
 
         var urlItems = DirWalker.GenIndex(releaseConfig.IndexPath, releaseConfig.Pattern, releaseConfig.SortBy);
-        releaseStatus.UrlItems?.Clear();
-        await _mirrorStatusContext.SaveChangesAsync();
 
-        releaseStatus.UrlItems = urlItems;
+        foreach (var urlItem in urlItems)
+        {
+            var existingUrlItem = releaseStatus.UrlItems.FirstOrDefault(url => url.Url.Equals(urlItem.Url));
+            
+            if (existingUrlItem == null)
+            {
+                releaseStatus.UrlItems.Add(urlItem);
+            }
+            else
+            {
+                _mirrorStatusContext.Entry(existingUrlItem).CurrentValues.SetValues(urlItem);
+            }
+        }
+
+        foreach (var urlItem in releaseStatus.UrlItems.Where(urlItem => !releaseStatus.UrlItems.Any(url => url.Url.Equals(urlItem.Url))))
+        {
+            _mirrorStatusContext.Remove(urlItem);
+        }
 
         await _mirrorStatusContext.SaveChangesAsync();
 

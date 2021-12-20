@@ -15,4 +15,5 @@ public class MirrorStatusContext : DbContext
 
     public DbSet<MirrorStatus.PackageInfoDto> Packages { get; set; }
     public DbSet<MirrorStatus.ReleaseInfo> Releases { get; set; }
+    public DbSet<MirrorStatus.UrlItem> UrlItems { get; set; }
 }

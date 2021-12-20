@@ -31,7 +31,7 @@ public class MirrorsController : ControllerBase
     public async Task<MirrorStatus.DataFormat> Get()
     {
         var packageList = await _mirrorStatusContext.Packages.ToListAsync();
-        var releaseList = await _mirrorStatusContext.Releases.ToListAsync();
+        var releaseList = await _mirrorStatusContext.Releases.Include(release => release.UrlItems).ToListAsync();
         var res = new MirrorStatus.DataFormat
         {
             Site = _siteInfo,
