@@ -26,7 +26,7 @@ public class DirWalker
         // Data structure to hold names of subfolders to be
         // examined for files.
         var dirs = new Stack<string>(20);
-        var root = $"Data{indexPath}";
+        var root = $"{Constants.ContentPath}{indexPath}";
         var rx = new Regex(regexPattern, RegexOptions.Compiled);
         var res = new List<MirrorStatus.UrlItem>();
 
@@ -95,7 +95,7 @@ public class DirWalker
                     res.Add(new MirrorStatus.UrlItem
                     {
                         Name = fi.Name,
-                        Url = $"/{Path.GetRelativePath("Data", fi.FullName)}",
+                        Url = $"/{Path.GetRelativePath(Constants.ContentPath, fi.FullName)}",
                         SortKey = Regex.Replace(fi.Name, regexPattern, sortBy)
                     });
                 }

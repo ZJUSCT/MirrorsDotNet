@@ -28,7 +28,7 @@ public class Startup
     {
         services.Configure<MirrorStatus.SiteInfo>(Configuration.GetSection("SiteInfo"));
         services.AddDbContext<MirrorConfigContext>(opt => opt.UseInMemoryDatabase("MirrorConfigs"));
-        services.AddDbContext<MirrorStatusContext>(opt => opt.UseSqlite("Data Source=mirror-status.db"));
+        services.AddDbContext<MirrorStatusContext>(opt => opt.UseSqlite(Utils.Constants.SqliteConnectionString));
         services.AddAutoMapper(typeof(MapperProfile));
         services.AddControllers()
             .AddJsonOptions(options =>

@@ -15,7 +15,7 @@ public class Program
         Host.CreateDefaultBuilder(args)
             .ConfigureAppConfiguration((hostingContext, config) =>
             {
-                config.AddYamlFile("Configs/site.yml", optional: true, reloadOnChange: true);
+                config.AddYamlFile(Utils.Constants.SiteConfigPath, optional: true, reloadOnChange: true);
             })
             .ConfigureWebHostDefaults(webBuilder => { webBuilder.UseStartup<Startup>(); });
 }

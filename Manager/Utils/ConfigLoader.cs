@@ -23,7 +23,7 @@ public class ConfigLoader
 
         // Load Release Configs
         configContext.Releases.RemoveRange(configContext.Releases);
-        var releaseDirInfo = new DirectoryInfo(@"Configs/Releases");
+        var releaseDirInfo = new DirectoryInfo(Constants.ReleaseConfigPath);
         foreach (var fi in releaseDirInfo.GetFiles("*.yml", SearchOption.AllDirectories))
         {
             var releaseConfig = deserializer.Deserialize<MirrorRelease>(await File.ReadAllTextAsync(fi.FullName));
@@ -47,7 +47,7 @@ public class ConfigLoader
 
         // Load Package Configs
         configContext.Packages.RemoveRange(configContext.Packages);
-        var packageDirInfo = new DirectoryInfo(@"Configs/Packages");
+        var packageDirInfo = new DirectoryInfo(Constants.PackageConfigPath);
         foreach (var fi in packageDirInfo.GetFiles("*.yml", SearchOption.AllDirectories))
         {
             var packageConfig = deserializer.Deserialize<MirrorPackage>(await File.ReadAllTextAsync(fi.FullName));
