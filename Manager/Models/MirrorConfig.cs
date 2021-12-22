@@ -6,7 +6,7 @@ namespace Manager.Models;
 public enum MirrorType
 {
     Normal,
-    Cache,
+    ProxyCache,
     ReverseProxy
 }
 

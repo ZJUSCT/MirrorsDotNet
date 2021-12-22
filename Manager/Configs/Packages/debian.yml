@@ -3,6 +3,7 @@ MappedName: Debian
 Description: Debian packages
 Url: /debian
 HelpUrl: /help/debian
+Type: ProxyCache
 
 ProviderImage: xxx/xxxx
 Upstream: https://mirrors.bfsu.edu.cn/debian
