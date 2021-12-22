@@ -27,7 +27,7 @@ public class DirWalker
         // examined for files.
         var dirs = new Stack<string>(20);
         var root = $"{Constants.ContentPath}{indexPath}";
-        var rx = new Regex(regexPattern, RegexOptions.Compiled);
+        var rx = new Regex(@$"^{regexPattern}$", RegexOptions.Compiled);
         var res = new List<MirrorStatus.UrlItem>();
 
         if (!Directory.Exists(root))
