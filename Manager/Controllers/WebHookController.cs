@@ -51,7 +51,7 @@ public class WebHookController : ControllerBase
     /// <param name="status">new status</param>
     [HttpPatch("package/{packageName}")]
     public async Task<IActionResult> UpdatePackageSyncStatus(string packageName,
-        [FromQuery(Name = "status")] Status status)
+        [FromForm(Name = "status")] Status status)
     {
         _logger.LogInformation("UpdatePackageSyncStatus: {Name} {Status}", packageName, status);
 
