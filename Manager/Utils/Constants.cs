@@ -11,4 +11,5 @@ public static class Constants
     public const string ReleaseConfigPath = $"{ConfigPath}/Releases";
     public const string PackageConfigPath = $"{ConfigPath}/Packages";
     public const string SqliteConnectionString = "Data Source=mirror-status.db";
+    public const string MirrorStatusCacheKey = "MirrorStatus";
 }
