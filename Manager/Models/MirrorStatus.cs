@@ -1,14 +1,10 @@
+using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.Text.Json.Serialization;
 
 namespace Manager.Models;
 
-/*
- * MirrorZ DataFormat
- * version: 1.5
- * ref: https://github.com/mirrorz-org/mirrorz#data-format-v15-draft
- */
-public class MirrorZ
+public class MirrorStatus
 {
     private const double FormatVersion = 1.5;
 
@@ -32,32 +28,38 @@ public class MirrorZ
     public class UrlItem
     {
         [JsonPropertyName("name")] public string Name { get; set; }
-        [JsonPropertyName("url")] public string Url { get; set; }
+        [Key] [JsonPropertyName("url")] public string Url { get; set; }
+        [JsonIgnore] public string SortKey { get; set; }
     }
         
     public class ReleaseInfo
     {
-        [JsonPropertyName("distro")] public string MappedName { get; set; }
+        [Key] [JsonPropertyName("distro")] public string MappedName { get; set; }
         [JsonPropertyName("category")] public ReleaseType Category { get; set; }
-        [JsonPropertyName("urls")] public UrlItem[] UrlItems { get; set; }
+        [JsonPropertyName("urls")] public List<UrlItem> UrlItems { get; set; }
     }
 
-    public class PackageInfo
+    public class PackageInfoDto
     {
-        [JsonPropertyName("cname")] public string MappedName { get; set; }
+        [Key] [JsonPropertyName("cname")] public string MappedName { get; set; }
         [JsonPropertyName("desc")] public string Description { get; set; }
         [JsonPropertyName("url")] public string Url { get; set; }
-        [JsonPropertyName("status")] public string Status { get; set; }
+        [Required] [JsonPropertyName("status")] public string Status { get; set; }
         [JsonPropertyName("help")] public string HelpUrl { get; set; }
         [JsonPropertyName("upstream")] public string Upstream { get; set; }
         [JsonPropertyName("size")] public string Size { get; set; }
     }
 
-    public class DataFormat
+    /// <summary>
+    /// MirrorZ DataFormat
+    /// version: 1.5
+    /// ref: https://github.com/mirrorz-org/mirrorz#data-format-v15-draft
+    /// </summary>
+    public class MirrorZFormat
     {
         [JsonPropertyName("version")] public double Version { get; } = FormatVersion;
         [JsonPropertyName("site")] public SiteInfo Site { get; set; }
-        [JsonPropertyName("info")] public ReleaseInfo[] Releases { get; set; }
-        [JsonPropertyName("mirrors")] public PackageInfo[] Packages { get; set; }
+        [JsonPropertyName("info")] public List<ReleaseInfo> Releases { get; set; }
+        [JsonPropertyName("mirrors")] public List<PackageInfoDto> Packages { get; set; }
     }
 }

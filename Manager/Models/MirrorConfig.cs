@@ -6,7 +6,7 @@ namespace Manager.Models;
 public enum MirrorType
 {
     Normal,
-    Cache,
+    ProxyCache,
     ReverseProxy
 }
 
@@ -21,6 +21,9 @@ public class MirrorBase
 {
     // Basic Info
     [Key] public string Name { get; set; }
+    /// <summary>
+    /// Ref: https://github.com/mirrorz-org/mirrorz/blob/master/static/json/cname.json
+    /// </summary>
     public string MappedName { get; set; }
     public string Url { get; set; }
     public bool IsNew { get; set; } = false;
@@ -42,9 +45,9 @@ public class MirrorPackage : MirrorBase
 public class MirrorRelease : MirrorBase
 {
     public ReleaseType Category { get; set; }
-        
+
     // Used to Generate File List
-    public string FilePath { get; set; }
+    public string IndexPath { get; set; }
     public string Pattern { get; set; }
     public string SortBy { get; set; }
 }

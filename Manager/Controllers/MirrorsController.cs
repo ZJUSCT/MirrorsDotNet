@@ -1,62 +1,55 @@
-﻿using Manager.Models;
+﻿using System.Text.Json;
+using System.Threading.Tasks;
+using Manager.Models;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Caching.Distributed;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 
 namespace Manager.Controllers;
 
 [ApiController]
-[Route("[controller]")]
+[Route("mirrors")]
 public class MirrorsController : ControllerBase
 {
     private readonly ILogger<MirrorsController> _logger;
-    private readonly MirrorZ.SiteInfo _siteInfo;
-    private readonly MirrorConfigContext _mirrorConfigs;
+    private readonly MirrorStatus.SiteInfo _siteInfo;
+    private readonly MirrorStatusContext _mirrorStatusContext;
+    private readonly IDistributedCache _cache;
 
-    public MirrorsController(ILogger<MirrorsController> logger, IOptions<MirrorZ.SiteInfo> siteInfo,
-        MirrorConfigContext configContext)
+    public MirrorsController(ILogger<MirrorsController> logger, IOptions<MirrorStatus.SiteInfo> siteInfo,
+        MirrorStatusContext statusContext, IDistributedCache cache)
     {
         _logger = logger;
         _siteInfo = siteInfo.Value;
-        _mirrorConfigs = configContext;
+        _mirrorStatusContext = statusContext;
+        _cache = cache;
     }
 
+    /// <summary>
+    /// Mirror status in MirrorZ format
+    /// </summary>
+    /// <returns></returns>
     [HttpGet]
-    public MirrorZ.DataFormat Get()
+    public async Task<MirrorStatus.MirrorZFormat> Get()
     {
-        var res = new MirrorZ.DataFormat
+        var serializedString = await _cache.GetStringAsync(Utils.Constants.MirrorStatusCacheKey);
+        if (serializedString != null)
+        {
+            return JsonSerializer.Deserialize<MirrorStatus.MirrorZFormat>(serializedString);
+        }
+        _logger.LogInformation("Status cache miss, regenerating");
+        var packageList = await _mirrorStatusContext.Packages.ToListAsync();
+        var releaseList = await _mirrorStatusContext.Releases.Include(release => release.UrlItems).ToListAsync();
+        var res = new MirrorStatus.MirrorZFormat
         {
             Site = _siteInfo,
-            Packages = new MirrorZ.PackageInfo[]
-            {
-                new()
-                {
-                    Url = "/debian",
-                    MappedName = "debian",
-                    Description = "Debian packages",
-                    HelpUrl = "/help/debian",
-                    Size = "100G",
-                    Status = "S",
-                    Upstream = "https://mirrors.tuna.tsinghua.edu.cn"
-                }
-            },
-            Releases = new MirrorZ.ReleaseInfo[]
-            {
-                new()
-                {
-                    MappedName = "MeshLab",
-                    Category = ReleaseType.App,
-                    UrlItems = new MirrorZ.UrlItem[]
-                    {
-                        new()
-                        {
-                            Url = "CG/meshlab-1.0.zip",
-                            Name = "v1.0"
-                        }
-                    }
-                }
-            }
+            Packages = packageList,
+            Releases = releaseList
         };
+        await _cache.SetStringAsync(Utils.Constants.MirrorStatusCacheKey, JsonSerializer.Serialize(res));
+        _logger.LogInformation("Wrote status to cache");
         return res;
     }
 }

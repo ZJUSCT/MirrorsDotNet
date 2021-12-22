@@ -1,6 +1,6 @@
-using System.IO;
 using System.Text.Json;
 using System.Text.Json.Serialization;
+using AutoMapper;
 using Manager.Models;
 using Manager.Utils;
 using Microsoft.AspNetCore.Builder;
@@ -11,7 +11,6 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Microsoft.OpenApi.Models;
-using YamlDotNet.Serialization;
 
 namespace Manager;
 
@@ -27,9 +26,11 @@ public class Startup
     // This method gets called by the runtime. Use this method to add services to the container.
     public void ConfigureServices(IServiceCollection services)
     {
-        services.Configure<MirrorZ.SiteInfo>(Configuration.GetSection("SiteInfo"));
+        services.Configure<MirrorStatus.SiteInfo>(Configuration.GetSection("SiteInfo"));
         services.AddDbContext<MirrorConfigContext>(opt => opt.UseInMemoryDatabase("MirrorConfigs"));
+        services.AddDbContext<MirrorStatusContext>(opt => opt.UseSqlite(Utils.Constants.SqliteConnectionString));
         services.AddAutoMapper(typeof(MapperProfile));
+        services.AddDistributedMemoryCache();
         services.AddControllers()
             .AddJsonOptions(options =>
             {
@@ -49,38 +50,21 @@ public class Startup
             app.UseSwagger();
             app.UseSwaggerUI(c => c.SwaggerEndpoint("/swagger/v1/swagger.json", "Mirrors.NET Manager v1"));
         }
-            
+
         using (var serviceScope = app.ApplicationServices.GetService<IServiceScopeFactory>()?.CreateScope())
         {
             if (serviceScope != null)
             {
                 var logger = serviceScope.ServiceProvider.GetRequiredService<ILogger<Startup>>();
-                var context = serviceScope.ServiceProvider.GetRequiredService<MirrorConfigContext>();
-                context.Database.EnsureCreated();
+                var configContext = serviceScope.ServiceProvider.GetRequiredService<MirrorConfigContext>();
+                var statusContext = serviceScope.ServiceProvider.GetRequiredService<MirrorStatusContext>();
+                var mapper = serviceScope.ServiceProvider.GetRequiredService<IMapper>();
 
-                var deserializer = new DeserializerBuilder().Build();
+                configContext.Database.EnsureCreated();
+                statusContext.Database.EnsureCreated();
 
-                // Load Release Configs
-                var releaseDirInfo = new DirectoryInfo(@"Configs/Releases");
-                foreach (var fi in releaseDirInfo.GetFiles("*.yml", SearchOption.AllDirectories))
-                {
-                    var releaseConfig = deserializer.Deserialize<MirrorRelease>(File.ReadAllText(fi.FullName));
-                    releaseConfig.Name = Path.GetFileNameWithoutExtension(fi.Name);
-                    context.Releases.Add(releaseConfig);
-                    logger.LogInformation("Loaded Release Config {ConfigName}", releaseConfig.Name);
-                }
-                    
-                // Load Package Configs
-                var packageDirInfo = new DirectoryInfo(@"Configs/Packages");
-                foreach (var fi in packageDirInfo.GetFiles("*.yml", SearchOption.AllDirectories))
-                {
-                    var packageConfig = deserializer.Deserialize<MirrorPackage>(File.ReadAllText(fi.FullName));
-                    packageConfig.Name = Path.GetFileNameWithoutExtension(fi.Name);
-                    context.Packages.Add(packageConfig);
-                    logger.LogInformation("Loaded Package Config {ConfigName}", packageConfig.Name);
-                }
-
-                context.SaveChanges();
+                var task = ConfigLoader.LoadConfigAsync(configContext, statusContext, mapper, logger);
+                task.Wait();
             }
         }
 
