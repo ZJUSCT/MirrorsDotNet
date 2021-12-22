@@ -44,7 +44,7 @@ public class MirrorStatus
         [Key] [JsonPropertyName("cname")] public string MappedName { get; set; }
         [JsonPropertyName("desc")] public string Description { get; set; }
         [JsonPropertyName("url")] public string Url { get; set; }
-        [JsonPropertyName("status")] public string Status { get; set; }
+        [Required] [JsonPropertyName("status")] public string Status { get; set; }
         [JsonPropertyName("help")] public string HelpUrl { get; set; }
         [JsonPropertyName("upstream")] public string Upstream { get; set; }
         [JsonPropertyName("size")] public string Size { get; set; }
@@ -55,7 +55,7 @@ public class MirrorStatus
     /// version: 1.5
     /// ref: https://github.com/mirrorz-org/mirrorz#data-format-v15-draft
     /// </summary>
-    public class DataFormat
+    public class MirrorZFormat
     {
         [JsonPropertyName("version")] public double Version { get; } = FormatVersion;
         [JsonPropertyName("site")] public SiteInfo Site { get; set; }

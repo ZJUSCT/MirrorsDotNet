@@ -28,11 +28,11 @@ public class MirrorsController : ControllerBase
     /// </summary>
     /// <returns></returns>
     [HttpGet]
-    public async Task<MirrorStatus.DataFormat> Get()
+    public async Task<MirrorStatus.MirrorZFormat> Get()
     {
         var packageList = await _mirrorStatusContext.Packages.ToListAsync();
         var releaseList = await _mirrorStatusContext.Releases.Include(release => release.UrlItems).ToListAsync();
-        var res = new MirrorStatus.DataFormat
+        var res = new MirrorStatus.MirrorZFormat
         {
             Site = _siteInfo,
             Packages = packageList,
