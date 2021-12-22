@@ -7,6 +7,7 @@ using Manager.Utils;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Caching.Distributed;
 using Microsoft.Extensions.Logging;
 
 namespace Manager.Controllers;
@@ -23,6 +24,7 @@ public class WebHookController : ControllerBase
     private readonly MirrorConfigContext _mirrorConfigContext;
     private readonly MirrorStatusContext _mirrorStatusContext;
     private readonly IMapper _mapper;
+    private readonly IDistributedCache _cache;
 
     public enum Status
     {
@@ -33,12 +35,13 @@ public class WebHookController : ControllerBase
     }
 
     public WebHookController(ILogger<WebHookController> logger, MirrorConfigContext mirrorConfigContext,
-        MirrorStatusContext mirrorStatusContext, IMapper mapper)
+        MirrorStatusContext mirrorStatusContext, IMapper mapper, IDistributedCache cache)
     {
         _logger = logger;
         _mirrorConfigContext = mirrorConfigContext;
         _mirrorStatusContext = mirrorStatusContext;
         _mapper = mapper;
+        _cache = cache;
     }
 
     /// <summary>
@@ -98,6 +101,8 @@ public class WebHookController : ControllerBase
             return StatusCode(StatusCodes.Status500InternalServerError, "Invalid Status");
         }
 
+        await _cache.RemoveAsync(Utils.Constants.MirrorStatusCacheKey);
+
         return Ok();
     }
 
@@ -152,6 +157,7 @@ public class WebHookController : ControllerBase
         }
 
         await _mirrorStatusContext.SaveChangesAsync();
+        await _cache.RemoveAsync(Utils.Constants.MirrorStatusCacheKey);
 
         return Ok();
     }
@@ -164,5 +170,6 @@ public class WebHookController : ControllerBase
     {
         _logger.LogInformation("Reloading configs");
         await ConfigLoader.LoadConfigAsync(_mirrorConfigContext, _mirrorStatusContext, _mapper, _logger);
+        await _cache.RemoveAsync(Utils.Constants.MirrorStatusCacheKey);
     }
 }
