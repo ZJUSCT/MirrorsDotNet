@@ -1,6 +1,4 @@
-﻿#define OLD_SHIM
-
-using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.EntityFrameworkCore;
 
 namespace Manager.Models;
 

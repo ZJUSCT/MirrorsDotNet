@@ -1,6 +1,4 @@
-﻿#define OLD_SHIM
-
-using System;
+﻿using System;
 using System.Linq;
 using System.Threading.Tasks;
 using AutoMapper;
@@ -43,7 +41,17 @@ public class WebHookController : ControllerBase
         _mapper = mapper;
     }
 
-#if OLD_SHIM
+    /// <summary>
+    /// Webhook index to test if the webhook is working. 
+    /// </summary>
+    /// <returns></returns>
+    [HttpGet]
+    public IActionResult Get()
+    {
+        _logger.LogInformation("Incoming request at /webhook");
+        return Ok("[MirrorsDotNet] Manager webhooks are working.");
+    }
+
     /// <summary>
     /// Update Package Status
     /// </summary>
@@ -147,7 +155,6 @@ public class WebHookController : ControllerBase
 
         return Ok();
     }
-#endif
 
     /// <summary>
     /// Hot reload configs
