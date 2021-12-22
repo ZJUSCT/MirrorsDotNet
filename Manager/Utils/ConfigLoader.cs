@@ -58,6 +58,7 @@ public class ConfigLoader
             if (packageItem == null)
             {
                 var newPackageItem = mapper.Map<MirrorStatus.PackageInfoDto>(packageConfig);
+                newPackageItem.Status = "U"; // set default status to 'Unknown'
                 await statusContext.Packages.AddAsync(newPackageItem);
             }
             else
