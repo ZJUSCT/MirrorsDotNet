@@ -10,6 +10,6 @@ public static class Constants
     public const string SiteConfigPath = $"{ConfigPath}/site.yml";
     public const string ReleaseConfigPath = $"{ConfigPath}/Releases";
     public const string PackageConfigPath = $"{ConfigPath}/Packages";
-    public const string SqliteConnectionString = "Data Source=mirror-status.db";
+    public const string SqliteConnectionString = "Data Source=Status/mirror-status.db";
     public const string MirrorStatusCacheKey = "MirrorStatus";
 }

@@ -19,6 +19,7 @@
 
     <ItemGroup>
       <Folder Include="Data" />
+      <Folder Include="Status" />
     </ItemGroup>
 
 </Project>
