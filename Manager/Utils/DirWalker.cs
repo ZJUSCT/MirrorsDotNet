@@ -110,10 +110,24 @@ public class DirWalker
 
             // Push the subdirectories onto the stack for traversal.
             // This could also be done before handing the files.
-            foreach (var str in subDirs)
-                dirs.Push(str);
+            foreach (var subDir in subDirs)
+            {
+                if (IsSymbolic(subDir)) continue;
+                dirs.Push(subDir);
+            }
         }
 
         return res.OrderBy(o => o.SortKey).ToList();
+    }
+    
+    /// <summary>
+    /// Check if dir is symbolic link
+    /// </summary>
+    /// <param name="path"></param>
+    /// <returns></returns>
+    private static bool IsSymbolic(string path)
+    {
+        var pathInfo = new FileInfo(path);
+        return pathInfo.Attributes.HasFlag(FileAttributes.ReparsePoint);
     }
 }
