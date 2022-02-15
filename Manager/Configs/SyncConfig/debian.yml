@@ -1,11 +1,12 @@
-# Example Config for Packages
-MappedName: Debian
-Description: Debian packages
+DisplayName: Debian
+Description: Debian Packages
 Url: /debian
 HelpUrl: /help/debian
 Type: ProxyCache
 
 ProviderImage: xxx/xxxx
 Upstream: https://mirrors.bfsu.edu.cn/debian
-# ExtraCommand:
+# ExtraArgs:
 Cron: 0 * * * * *
+
+DisplayIndex: debian-iso

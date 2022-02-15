@@ -1,0 +1,5 @@
+# [Ref] https://github.com/tuna/mirror-web/blob/master/geninfo/genisolist.ini
+Category: os
+IndexPath: /debian-cd
+Pattern: debian-([0-9.]+)-(\w+)-(\w+)-1.iso
+SortBy: $1

@@ -1,0 +1,11 @@
+DisplayName: Debian ISO
+Description: Debian ISOs
+Url: /debian-cd
+Type: ProxyCache
+
+ProviderImage: xxx/xxxx
+Upstream: https://mirrors.bfsu.edu.cn/debian-cd
+# ExtraArgs:
+Cron: 0 * * * * *
+
+TrigIndex: debian-iso  # will trig index job after sync success
