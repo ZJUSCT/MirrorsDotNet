@@ -1,0 +1,14 @@
+version: "3"
+
+services:
+  manager:
+    image: git.zju.edu.cn:5050/zju-mirror/mirrorsdotnet
+    restart: always
+    ports:
+      - 6000:80
+    environment:
+      - TZ=Aisa/Shanghai
+    volumes:
+      - /data/mirrors/config:/app/Configs
+      - /data/mirrors/root:/app/Data
+      - /data/mirrors/status:/app/Status
