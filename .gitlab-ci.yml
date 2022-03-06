@@ -9,6 +9,8 @@ before_script:
 build:
   stage: build
   image: docker:20.10
+  tags:
+    - dind
   script:
     - docker pull $CI_REGISTRY/$IMAGE_TAG_LATEST || true
     - docker build -t $IMAGE_TAG .
