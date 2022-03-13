@@ -26,9 +26,7 @@ public class Startup
     // This method gets called by the runtime. Use this method to add services to the container.
     public void ConfigureServices(IServiceCollection services)
     {
-        services.Configure<MirrorStatus.SiteInfo>(Configuration.GetSection("SiteInfo"));
-        services.AddDbContext<MirrorConfigContext>(opt => opt.UseInMemoryDatabase("MirrorConfigs"));
-        services.AddDbContext<MirrorStatusContext>(opt => opt.UseSqlite(Utils.Constants.SqliteConnectionString));
+        services.AddDbContext<MirrorContext>(opt => opt.UseSqlite(Utils.Constants.SqliteConnectionString));
         services.AddAutoMapper(typeof(MapperProfile));
         services.AddDistributedMemoryCache();
         services.AddControllers()
@@ -56,15 +54,13 @@ public class Startup
             if (serviceScope != null)
             {
                 var logger = serviceScope.ServiceProvider.GetRequiredService<ILogger<Startup>>();
-                var configContext = serviceScope.ServiceProvider.GetRequiredService<MirrorConfigContext>();
-                var statusContext = serviceScope.ServiceProvider.GetRequiredService<MirrorStatusContext>();
+                var mirrorContext = serviceScope.ServiceProvider.GetRequiredService<MirrorContext>();
                 var mapper = serviceScope.ServiceProvider.GetRequiredService<IMapper>();
 
-                configContext.Database.EnsureCreated();
-                statusContext.Database.EnsureCreated();
+                mirrorContext.Database.EnsureCreated();
 
-                // var task = ConfigLoader.LoadConfigAsync(configContext, statusContext, mapper, logger);
-                // task.Wait();
+                var task = ConfigLoader.LoadConfigAsync(mirrorContext, mapper, logger);
+                task.Wait();
             }
         }
 

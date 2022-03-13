@@ -1,7 +1,0 @@
-SiteInfo:
-  Url: https://mirrors.zju.edu.cn
-  Abbreviation: ZJU
-  Name: 浙江大学开源软件镜像站
-  HomePage: https://www.zjusct.io
-  DiskStatus: 10T/120T
-  Notice: This is an example config file, please modify it when deploying your own mirror site

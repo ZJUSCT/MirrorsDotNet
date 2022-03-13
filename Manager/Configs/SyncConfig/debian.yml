@@ -1,7 +1,7 @@
 # Basic Info
 Name:
-  en: debian
-  zh: debian
+  en: Debian
+  zh: Debian
 Description:
   en: Debian Packages
   zh: Debian Packages
@@ -14,6 +14,3 @@ ProviderImage: xxx/xxxx
 Upstream: 'https://mirrors.bfsu.edu.cn/debian'
 ExtraArgs: -6
 Cron: 0 * * * * *
-
-# Index Config
-IndexId: debian-iso

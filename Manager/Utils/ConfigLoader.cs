@@ -12,74 +12,70 @@ public class ConfigLoader
     /// <summary>
     /// Load YAML mirror configs 
     /// </summary>
-    /// <param name="configContext">Mirror config context</param>
-    /// <param name="statusContext">Mirror status context</param>
+    /// <param name="mirrorContext">Mirror status context</param>
     /// <param name="mapper">Auto mapper instance</param>
     /// <param name="logger">Logger instance</param>
-    public static async Task LoadConfigAsync(MirrorConfigContext configContext, MirrorStatusContext statusContext,
-        IMapper mapper, ILogger logger)
+    public static async Task LoadConfigAsync(MirrorContext mirrorContext, IMapper mapper, ILogger logger)
     {
         var deserializer = new DeserializerBuilder().Build();
 
-        // Load Release Configs
-        configContext.Releases.RemoveRange(configContext.Releases);
-        var releaseDirInfo = new DirectoryInfo(Constants.ReleaseConfigPath);
-        foreach (var fi in releaseDirInfo.GetFiles("*.yml", SearchOption.AllDirectories))
+        // Load Sync Configs
+        var syncDirInfo = new DirectoryInfo(Constants.SyncConfigPath);
+        foreach (var fi in syncDirInfo.GetFiles("*.yml", SearchOption.AllDirectories))
         {
-            var releaseConfig = deserializer.Deserialize<MirrorRelease>(await File.ReadAllTextAsync(fi.FullName));
-            releaseConfig.Name = Path.GetFileNameWithoutExtension(fi.Name);
-            await configContext.Releases.AddAsync(releaseConfig);
+            var mirrorConfig = deserializer.Deserialize<Mirror.MirrorConfig>(await File.ReadAllTextAsync(fi.FullName));
+            mirrorConfig.Id = Path.GetFileNameWithoutExtension(fi.Name);
 
-            var releaseItem = await statusContext.Releases.FindAsync(releaseConfig.MappedName);
-            if (releaseItem == null)
+            var mirrorItem = await mirrorContext.Mirrors.FindAsync(mirrorConfig.Id);
+            if (mirrorItem == null)
             {
-                var newReleaseItem = mapper.Map<MirrorStatus.ReleaseInfo>(releaseConfig);
-                await statusContext.Releases.AddAsync(newReleaseItem);
+                var newMirrorItem = mapper.Map<Mirror.MirrorItem>(mirrorConfig);
+                await mirrorContext.Mirrors.AddAsync(newMirrorItem);
             }
             else
             {
                 // update if existed
-                releaseItem.Category = releaseConfig.Category;
+                mirrorItem.UpdateFromConfig(mirrorConfig);
             }
 
-            logger.LogInformation("Loaded Release Config {ConfigName}", releaseConfig.Name);
+            logger.LogInformation("Loaded Mirror Sync Config {ConfigName}", mirrorConfig.Id);
         }
 
-        // Load Package Configs
-        configContext.Packages.RemoveRange(configContext.Packages);
-        var packageDirInfo = new DirectoryInfo(Constants.PackageConfigPath);
-        foreach (var fi in packageDirInfo.GetFiles("*.yml", SearchOption.AllDirectories))
-        {
-            var packageConfig = deserializer.Deserialize<MirrorPackage>(await File.ReadAllTextAsync(fi.FullName));
-            packageConfig.Name = Path.GetFileNameWithoutExtension(fi.Name);
-            await configContext.Packages.AddAsync(packageConfig);
+        // TODO: Load Index Configs
+        // // Load Package Configs
+        // configContext.Packages.RemoveRange(configContext.Packages);
+        // var packageDirInfo = new DirectoryInfo(Constants.PackageConfigPath);
+        // foreach (var fi in packageDirInfo.GetFiles("*.yml", SearchOption.AllDirectories))
+        // {
+        //     var packageConfig = deserializer.Deserialize<MirrorPackage>(await File.ReadAllTextAsync(fi.FullName));
+        //     packageConfig.Name = Path.GetFileNameWithoutExtension(fi.Name);
+        //     await configContext.Packages.AddAsync(packageConfig);
+        //
+        //     var packageItem = await mirrorContext.Packages.FindAsync(packageConfig.MappedName);
+        //     if (packageItem == null)
+        //     {
+        //         var newPackageItem = mapper.Map<MirrorStatus.PackageInfoDto>(packageConfig);
+        //         newPackageItem.Status = packageConfig.Type switch
+        //         {
+        //             MirrorType.ReverseProxy => "R",
+        //             MirrorType.ProxyCache => "C",
+        //             MirrorType.Normal => "U", // set default status to 'Unknown'
+        //             _ => "U" // set default status to 'Unknown'
+        //         };
+        //         await mirrorContext.Packages.AddAsync(newPackageItem);
+        //     }
+        //     else
+        //     {
+        //         // update if existed
+        //         packageItem.Description = packageConfig.Description;
+        //         packageItem.Url = packageConfig.Url;
+        //         packageItem.HelpUrl = packageConfig.HelpUrl;
+        //         packageItem.Upstream = packageConfig.Upstream;
+        //     }
+        //
+        //     logger.LogInformation("Loaded Package Config {ConfigName}", packageConfig.Name);
+        // }
 
-            var packageItem = await statusContext.Packages.FindAsync(packageConfig.MappedName);
-            if (packageItem == null)
-            {
-                var newPackageItem = mapper.Map<MirrorStatus.PackageInfoDto>(packageConfig);
-                newPackageItem.Status = packageConfig.Type switch
-                {
-                    MirrorType.ReverseProxy => "R",
-                    MirrorType.ProxyCache => "C",
-                    MirrorType.Normal => "U", // set default status to 'Unknown'
-                    _ => "U" // set default status to 'Unknown'
-                };
-                await statusContext.Packages.AddAsync(newPackageItem);
-            }
-            else
-            {
-                // update if existed
-                packageItem.Description = packageConfig.Description;
-                packageItem.Url = packageConfig.Url;
-                packageItem.HelpUrl = packageConfig.HelpUrl;
-                packageItem.Upstream = packageConfig.Upstream;
-            }
-
-            logger.LogInformation("Loaded Package Config {ConfigName}", packageConfig.Name);
-        }
-
-        await configContext.SaveChangesAsync();
-        await statusContext.SaveChangesAsync();
+        await mirrorContext.SaveChangesAsync();
     }
 }

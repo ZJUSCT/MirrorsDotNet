@@ -1,11 +1,18 @@
-DisplayName: Debian ISO
-Description: Debian ISOs
+# Basic Info
+Name:
+  en: Debian ISO
+  zh: Debian ISO
+Description:
+  en: Debian Images
+  zh: Debian Images
 Url: /debian-cd
-Type: ProxyCache
+Type: Normal
 
+# Sync Config
 ProviderImage: xxx/xxxx
-Upstream: https://mirrors.bfsu.edu.cn/debian-cd
-# ExtraArgs:
+Upstream: 'https://mirrors.bfsu.edu.cn/debian-cd'
+ExtraArgs: -6
 Cron: 0 * * * * *
 
+# Index Job
 TrigIndex: debian-iso  # will trig index job after sync success

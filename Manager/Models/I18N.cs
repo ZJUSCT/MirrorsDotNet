@@ -1,10 +1,15 @@
+using System.Text.Json.Serialization;
+using Microsoft.EntityFrameworkCore;
+using YamlDotNet.Serialization;
+
 namespace Manager.Models;
 
 public class I18N
 {
-    public class String
+    [Owned]
+    public class StringBase
     {
-        public string Zh { get; set; }
-        public string En { get; set; }
+        [JsonPropertyName("zh")][YamlMember(Alias="zh")] public string Zh { get; set; }
+        [JsonPropertyName("en")][YamlMember(Alias="en")] public string En { get; set; }
     }
 }

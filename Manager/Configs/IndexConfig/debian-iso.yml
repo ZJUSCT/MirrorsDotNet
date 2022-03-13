@@ -1,5 +1,13 @@
 # [Ref] https://github.com/tuna/mirror-web/blob/master/geninfo/genisolist.ini
+
+# Basic Ingo
 Category: os
+
+# Index Config
 IndexPath: /debian-cd
 Pattern: debian-([0-9.]+)-(\w+)-(\w+)-1.iso
+ExcludePattern: .pool
 SortBy: $1
+
+# Register Target
+RegisterId: debian

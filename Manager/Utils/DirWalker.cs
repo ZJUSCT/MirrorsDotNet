@@ -21,14 +21,14 @@ public class DirWalker
     /// <param name="sortBy">string to sort by</param>
     /// <returns>List of UrlItems</returns>
     /// <exception cref="ArgumentException"></exception>
-    public static List<MirrorStatus.UrlItem> GenIndex(string indexPath, string regexPattern, string sortBy)
+    public static List<Mirror.UrlItem> GenIndex(string indexPath, string regexPattern, string sortBy)
     {
         // Data structure to hold names of subfolders to be
         // examined for files.
         var dirs = new Stack<string>(20);
         var root = $"{Constants.ContentPath}{indexPath}";
         var rx = new Regex(@$"^{regexPattern}$", RegexOptions.Compiled);
-        var res = new List<MirrorStatus.UrlItem>();
+        var res = new List<Mirror.UrlItem>();
 
         if (!Directory.Exists(root))
         {
@@ -92,7 +92,7 @@ public class DirWalker
                     Console.WriteLine("{0}: {1}, {2}", fi.Name, fi.Length, fi.CreationTime);
                     var matches = rx.Matches(fi.Name);
                     if (matches.Count == 0) continue; // file not match
-                    res.Add(new MirrorStatus.UrlItem
+                    res.Add(new Mirror.UrlItem
                     {
                         Name = fi.Name,
                         Url = $"/{Path.GetRelativePath(Constants.ContentPath, fi.FullName)}",

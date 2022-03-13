@@ -6,7 +6,6 @@ using Manager.Models;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Caching.Distributed;
 using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Options;
 
 namespace Manager.Controllers;
 
@@ -15,16 +14,13 @@ namespace Manager.Controllers;
 public class MirrorsController : ControllerBase
 {
     private readonly ILogger<MirrorsController> _logger;
-    private readonly MirrorStatus.SiteInfo _siteInfo;
-    private readonly MirrorStatusContext _mirrorStatusContext;
+    // private readonly MirrorStatus.SiteInfo _siteInfo;
+    // private readonly MirrorStatusContext _mirrorStatusContext;
     private readonly IDistributedCache _cache;
 
-    public MirrorsController(ILogger<MirrorsController> logger, IOptions<MirrorStatus.SiteInfo> siteInfo,
-        MirrorStatusContext statusContext, IDistributedCache cache)
+    public MirrorsController(ILogger<MirrorsController> logger, IDistributedCache cache)
     {
         _logger = logger;
-        _siteInfo = siteInfo.Value;
-        _mirrorStatusContext = statusContext;
         _cache = cache;
     }
 
@@ -51,18 +47,18 @@ public class MirrorsController : ControllerBase
             {
                 Id = "debian",
                 Url = "/debian",
-                Name = new I18N.String
+                Name = new I18N.StringBase
                 {
                     En = "Debian",
                     Zh = "Debian 发行版"
                 },
-                Description = new I18N.String
+                Description = new I18N.StringBase
                 {
                     En =
                         "Debian is a free and open-source operating system, based on the Linux kernel, and is the default distribution for the GNU/Linux operating system family.",
                     Zh = "Debian 是一个基于 Linux 内核的免费和开源操作系统，它是 GNU/Linux 操作系统的默认发行版。"
                 },
-                MirrorStatus = Mirror.MirrorStatus.Succeeded,
+                Status = Mirror.MirrorStatus.Succeeded,
                 LastSuccess = DateTime.Now,
                 LastUpdated = DateTime.Now,
                 NextScheduled = DateTime.Now + TimeSpan.FromHours(2),
@@ -118,18 +114,18 @@ public class MirrorsController : ControllerBase
         {
             Id = id,
             Url = $"/{id}",
-            Name = new I18N.String
+            Name = new I18N.StringBase
             {
                 En = "Debian",
                 Zh = "Debian 发行版"
             },
-            Description = new I18N.String
+            Description = new I18N.StringBase
             {
                 En =
                     "Debian is a free and open-source operating system, based on the Linux kernel, and is the default distribution for the GNU/Linux operating system family.",
                 Zh = "Debian 是一个基于 Linux 内核的免费和开源操作系统，它是 GNU/Linux 操作系统的默认发行版。"
             },
-            MirrorStatus = Mirror.MirrorStatus.Succeeded,
+            Status = Mirror.MirrorStatus.Succeeded,
             LastSuccess = DateTime.Now,
             LastUpdated = DateTime.Now,
             NextScheduled = DateTime.Now + TimeSpan.FromHours(2),

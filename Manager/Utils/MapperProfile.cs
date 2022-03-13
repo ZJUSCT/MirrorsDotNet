@@ -7,7 +7,7 @@ public class MapperProfile: Profile
 {
     public MapperProfile()
     {
-        CreateMap<MirrorRelease, MirrorStatus.ReleaseInfo>();
-        CreateMap<MirrorPackage, MirrorStatus.PackageInfoDto>();
+        CreateMap<Mirror.MirrorConfig, Mirror.MirrorItem>();
+        CreateMap<Mirror.MirrorItem, Mirror.MirrorItemDto>();
     }
 }
