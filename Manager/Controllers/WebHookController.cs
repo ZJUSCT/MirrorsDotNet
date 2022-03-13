@@ -26,7 +26,7 @@ public class WebHookController : ControllerBase
     private readonly IMapper _mapper;
     private readonly IDistributedCache _cache;
 
-    public enum Status
+    public enum ReportStatus
     {
         Syncing = 1, // to avoid default enum value 0
         Failed,
@@ -59,12 +59,12 @@ public class WebHookController : ControllerBase
     /// Update Package Status
     /// </summary>
     /// <param name="packageName">package name (should match with config file)</param>
-    /// <param name="status">new status</param>
+    /// <param name="reportStatus">new status</param>
     [HttpPatch("package/{packageName}")]
     public async Task<IActionResult> UpdatePackageSyncStatus(string packageName,
-        [FromForm(Name = "status")] Status status)
+        [FromForm(Name = "status")] ReportStatus reportStatus)
     {
-        _logger.LogInformation("UpdatePackageSyncStatus: {Name} {Status}", packageName, status);
+        _logger.LogInformation("UpdatePackageSyncStatus: {Name} {Status}", packageName, reportStatus);
 
         var packageConfig = await _mirrorConfigContext.Packages.FindAsync(packageName);
         if (packageConfig == null)
@@ -84,20 +84,20 @@ public class WebHookController : ControllerBase
         try
         {
             var timeStampString = $"{TimeStamp.UnixTimeStamp():D10}";
-            var statusString = status switch
+            var statusString = reportStatus switch
             {
-                Status.Syncing => "Y",
-                Status.Failed => "F",
-                Status.Success => "S",
-                Status.Pause => "P",
-                _ => throw new ArgumentOutOfRangeException(nameof(status), status, null)
+                ReportStatus.Syncing => "Y",
+                ReportStatus.Failed => "F",
+                ReportStatus.Success => "S",
+                ReportStatus.Pause => "P",
+                _ => throw new ArgumentOutOfRangeException(nameof(reportStatus), reportStatus, null)
             };
             packageStatus.Status = statusString + timeStampString;
             await _mirrorStatusContext.SaveChangesAsync();
         }
         catch (ArgumentOutOfRangeException)
         {
-            _logger.LogError("Invalid Status {Status}, check if the webhook url is wrong", status);
+            _logger.LogError("Invalid Status {Status}, check if the webhook url is wrong", reportStatus);
             return StatusCode(StatusCodes.Status500InternalServerError, "Invalid Status");
         }
 
