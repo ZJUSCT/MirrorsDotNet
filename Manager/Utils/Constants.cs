@@ -5,6 +5,7 @@
 /// </summary>
 public static class Constants
 {
+    public const string ApiVersion = "v2";
     public const string ContentPath = "Data";
     public const string ConfigPath = "Configs";
     public const string SiteConfigPath = $"{ConfigPath}/site.yml";

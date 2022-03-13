@@ -33,19 +33,19 @@ public class MirrorsController : ControllerBase
     /// </summary>
     /// <returns></returns>
     [HttpGet]
-    public async Task<List<MirrorDto.MirrorItem>> GetAllMirrors()
+    public async Task<List<Mirror.MirrorItemDto>> GetAllMirrors()
     {
         var serializedString = await _cache.GetStringAsync(Utils.Constants.MirrorStatusCacheKey);
         if (serializedString != null)
         {
-            return JsonSerializer.Deserialize<List<MirrorDto.MirrorItem>>(serializedString);
+            return JsonSerializer.Deserialize<List<Mirror.MirrorItemDto>>(serializedString);
         }
 
         _logger.LogInformation("Status cache miss, regenerating");
 
         // var packageList = await _mirrorStatusContext.Packages.ToListAsync();
         // var releaseList = await _mirrorStatusContext.Releases.Include(release => release.UrlItems).ToListAsync();
-        var res = new List<MirrorDto.MirrorItem>()
+        var res = new List<Mirror.MirrorItemDto>()
         {
             new()
             {
@@ -62,19 +62,42 @@ public class MirrorsController : ControllerBase
                         "Debian is a free and open-source operating system, based on the Linux kernel, and is the default distribution for the GNU/Linux operating system family.",
                     Zh = "Debian 是一个基于 Linux 内核的免费和开源操作系统，它是 GNU/Linux 操作系统的默认发行版。"
                 },
-                Status = Mirror.Status.Succeeded,
+                MirrorStatus = Mirror.MirrorStatus.Succeeded,
                 LastSuccess = DateTime.Now,
                 LastUpdated = DateTime.Now,
                 NextScheduled = DateTime.Now + TimeSpan.FromHours(2),
-                IsoDict = new Dictionary<string, string>
+                FileList = new List<Mirror.UrlItem>()
                 {
-                    { "amd64-generic-hwe-12.04", "xxx/xxx.iso" },
-                    { "amd64-generic-hwe-14.04", "xxx/xxx.iso" },
-                    { "amd64-generic-hwe-16.04", "xxx/xxx.iso" },
-                    { "amd64-generic-hwe-18.04", "xxx/xxx.iso" },
-                    { "amd64-generic-hwe-20.04", "xxx/xxx.iso" },
-                    { "amd64-generic-hwe-21.10", "xxx/xxx.iso" },
-                    { "amd64-generic-hwe-22.04", "xxx/xxx.iso" },
+                    new()
+                    {
+                        Name = "amd64-generic-hwe-12.04",
+                        Url = "xxx/xxx.iso"
+                    },
+                    new()
+                    {
+                        Name = "amd64-generic-hwe-14.04",
+                        Url = "xxx/xxx.iso"
+                    },
+                    new()
+                    {
+                        Name = "amd64-generic-hwe-16.04",
+                        Url = "xxx/xxx.iso"
+                    },
+                    new()
+                    {
+                        Name = "amd64-generic-hwe-18.04",
+                        Url = "xxx/xxx.iso"
+                    },
+                    new()
+                    {
+                        Name = "amd64-generic-hwe-20.04",
+                        Url = "xxx/xxx.iso"
+                    },
+                    new()
+                    {
+                        Name = "amd64-generic-hwe-21.10",
+                        Url = "xxx/xxx.iso"
+                    }
                 }
             }
         };
@@ -89,9 +112,9 @@ public class MirrorsController : ControllerBase
     /// </summary>
     /// <returns></returns>
     [HttpGet("{id}")]
-    public async Task<MirrorDto.MirrorItem> GetMirror(string id)
+    public async Task<Mirror.MirrorItemDto> GetMirror(string id)
     {
-        var res = new MirrorDto.MirrorItem
+        var res = new Mirror.MirrorItemDto()
         {
             Id = id,
             Url = $"/{id}",
@@ -106,19 +129,42 @@ public class MirrorsController : ControllerBase
                     "Debian is a free and open-source operating system, based on the Linux kernel, and is the default distribution for the GNU/Linux operating system family.",
                 Zh = "Debian 是一个基于 Linux 内核的免费和开源操作系统，它是 GNU/Linux 操作系统的默认发行版。"
             },
-            Status = Mirror.Status.Succeeded,
+            MirrorStatus = Mirror.MirrorStatus.Succeeded,
             LastSuccess = DateTime.Now,
             LastUpdated = DateTime.Now,
             NextScheduled = DateTime.Now + TimeSpan.FromHours(2),
-            IsoDict = new Dictionary<string, string>
+            FileList = new List<Mirror.UrlItem>()
             {
-                { "amd64-generic-hwe-12.04", "xxx/xxx.iso" },
-                { "amd64-generic-hwe-14.04", "xxx/xxx.iso" },
-                { "amd64-generic-hwe-16.04", "xxx/xxx.iso" },
-                { "amd64-generic-hwe-18.04", "xxx/xxx.iso" },
-                { "amd64-generic-hwe-20.04", "xxx/xxx.iso" },
-                { "amd64-generic-hwe-21.10", "xxx/xxx.iso" },
-                { "amd64-generic-hwe-22.04", "xxx/xxx.iso" },
+                new()
+                {
+                    Name = "amd64-generic-hwe-12.04",
+                    Url = "xxx/xxx.iso"
+                },
+                new()
+                {
+                    Name = "amd64-generic-hwe-14.04",
+                    Url = "xxx/xxx.iso"
+                },
+                new()
+                {
+                    Name = "amd64-generic-hwe-16.04",
+                    Url = "xxx/xxx.iso"
+                },
+                new()
+                {
+                    Name = "amd64-generic-hwe-18.04",
+                    Url = "xxx/xxx.iso"
+                },
+                new()
+                {
+                    Name = "amd64-generic-hwe-20.04",
+                    Url = "xxx/xxx.iso"
+                },
+                new()
+                {
+                    Name = "amd64-generic-hwe-21.10",
+                    Url = "xxx/xxx.iso"
+                }
             }
         };
 

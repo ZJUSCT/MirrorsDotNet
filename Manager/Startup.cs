@@ -38,7 +38,7 @@ public class Startup
                 options.JsonSerializerOptions.WriteIndented = true;
                 options.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter(JsonNamingPolicy.CamelCase));
             });
-        services.AddSwaggerGen(c => { c.SwaggerDoc("v1", new OpenApiInfo { Title = "Manager", Version = "v1" }); });
+        services.AddSwaggerGen(c => { c.SwaggerDoc(Constants.ApiVersion, new OpenApiInfo { Title = "Manager", Version = Constants.ApiVersion }); });
     }
 
     // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
@@ -48,7 +48,7 @@ public class Startup
         {
             app.UseDeveloperExceptionPage();
             app.UseSwagger();
-            app.UseSwaggerUI(c => c.SwaggerEndpoint("/swagger/v1/swagger.json", "Mirrors.NET Manager v1"));
+            app.UseSwaggerUI(c => c.SwaggerEndpoint($"/swagger/{Constants.ApiVersion}/swagger.json", $"Mirrors.NET API {Constants.ApiVersion}"));;
         }
 
         using (var serviceScope = app.ApplicationServices.GetService<IServiceScopeFactory>()?.CreateScope())
@@ -63,8 +63,8 @@ public class Startup
                 configContext.Database.EnsureCreated();
                 statusContext.Database.EnsureCreated();
 
-                var task = ConfigLoader.LoadConfigAsync(configContext, statusContext, mapper, logger);
-                task.Wait();
+                // var task = ConfigLoader.LoadConfigAsync(configContext, statusContext, mapper, logger);
+                // task.Wait();
             }
         }
 

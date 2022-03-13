@@ -1,12 +1,19 @@
-DisplayName: Debian
-Description: Debian Packages
+# Basic Info
+Name:
+  en: debian
+  zh: debian
+Description:
+  en: Debian Packages
+  zh: Debian Packages
 Url: /debian
 HelpUrl: /help/debian
-Type: ProxyCache
+Type: Normal
 
+# Sync Config
 ProviderImage: xxx/xxxx
-Upstream: https://mirrors.bfsu.edu.cn/debian
-# ExtraArgs:
+Upstream: 'https://mirrors.bfsu.edu.cn/debian'
+ExtraArgs: -6
 Cron: 0 * * * * *
 
-DisplayIndex: debian-iso
+# Index Config
+IndexId: debian-iso
