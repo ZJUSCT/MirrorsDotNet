@@ -151,6 +151,6 @@ public class Mirror
         public DateTime NextScheduled { get; set; }
         public DateTime LastSuccess { get; set; }
 
-        public List<UrlItem> FileList { get; set; }
+        public List<UrlItem> Files { get; set; }
     }
 }

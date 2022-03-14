@@ -62,7 +62,7 @@ public class MirrorsController : ControllerBase
                 LastSuccess = DateTime.Now,
                 LastUpdated = DateTime.Now,
                 NextScheduled = DateTime.Now + TimeSpan.FromHours(2),
-                FileList = new List<Mirror.UrlItem>()
+                Files = new List<Mirror.UrlItem>()
                 {
                     new()
                     {
@@ -129,7 +129,7 @@ public class MirrorsController : ControllerBase
             LastSuccess = DateTime.Now,
             LastUpdated = DateTime.Now,
             NextScheduled = DateTime.Now + TimeSpan.FromHours(2),
-            FileList = new List<Mirror.UrlItem>()
+            Files = new List<Mirror.UrlItem>()
             {
                 new()
                 {
