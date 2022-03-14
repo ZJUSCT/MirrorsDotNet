@@ -21,13 +21,15 @@ public class DirWalker
     /// <param name="sortBy">string to sort by</param>
     /// <returns>List of UrlItems</returns>
     /// <exception cref="ArgumentException"></exception>
-    public static List<Mirror.UrlItem> GenIndex(string indexPath, string regexPattern, string sortBy)
+    public static List<Mirror.UrlItem> GenIndex(string indexPath, string regexPattern, string sortBy,
+        string excludePattern = null)
     {
         // Data structure to hold names of subfolders to be
         // examined for files.
         var dirs = new Stack<string>(20);
         var root = $"{Constants.ContentPath}{indexPath}";
         var rx = new Regex(@$"^{regexPattern}$", RegexOptions.Compiled);
+        var excludeRx = new Regex(@$"{excludePattern}", RegexOptions.Compiled);
         var res = new List<Mirror.UrlItem>();
 
         if (!Directory.Exists(root))
@@ -89,9 +91,10 @@ public class DirWalker
                 {
                     // Perform whatever action is required in your scenario.
                     var fi = new FileInfo(file);
-                    Console.WriteLine("{0}: {1}, {2}", fi.Name, fi.Length, fi.CreationTime);
+                    // Console.WriteLine("{0}: {1}, {2}", fi.Name, fi.Length, fi.CreationTime);
                     var matches = rx.Matches(fi.Name);
                     if (matches.Count == 0) continue; // file not match
+                    if (excludeRx.IsMatch(fi.FullName)) continue; // file path is excluded
                     res.Add(new Mirror.UrlItem
                     {
                         Name = fi.Name,
@@ -113,13 +116,14 @@ public class DirWalker
             foreach (var subDir in subDirs)
             {
                 if (IsSymbolic(subDir)) continue;
+                if (excludeRx.IsMatch(subDir)) continue;
                 dirs.Push(subDir);
             }
         }
 
         return res.OrderBy(o => o.SortKey).ToList();
     }
-    
+
     /// <summary>
     /// Check if dir is symbolic link
     /// </summary>

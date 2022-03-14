@@ -57,12 +57,7 @@ public class ConfigLoader
             else
             {
                 // update if existed
-                indexConfigItem.Category = indexConfig.Category;
-                indexConfigItem.Pattern = indexConfig.Pattern;
-                indexConfigItem.ExcludePattern = indexConfig.ExcludePattern;
-                indexConfigItem.IndexPath = indexConfig.IndexPath;
-                indexConfigItem.RegisterId = indexConfig.RegisterId;
-                indexConfigItem.SortBy = indexConfig.SortBy;
+                mirrorContext.Entry(indexConfigItem).CurrentValues.SetValues(indexConfig);
             }
 
             logger.LogInformation("Loaded File Index Config {ConfigName}", indexConfig.Id);

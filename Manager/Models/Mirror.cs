@@ -79,7 +79,7 @@ public class Mirror
 
         // Index
         public string TrigIndex { get; set; }
-        public List<UrlItem> FileList { get; set; }
+        public List<UrlItem> Files { get; set; }
 
         // Status
         public MirrorStatus Status { get; set; }
@@ -100,7 +100,7 @@ public class Mirror
             Cron = config.Cron;
             TrigIndex = config.TrigIndex;
         }
-        
+
         public void UpdateStatus(MirrorStatus status)
         {
             Status = status;
