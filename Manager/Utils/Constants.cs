@@ -11,5 +11,6 @@ public static class Constants
     public const string SyncConfigPath = $"{ConfigPath}/SyncConfig";
     public const string IndexConfigPath = $"{ConfigPath}/IndexConfig";
     public const string SqliteConnectionString = "Data Source=Status/mirror-status.db";
-    public const string MirrorStatusCacheKey = "MirrorStatus";
+    public const string MirrorAllCacheKey = "MirrorStatus";
+    public const string MirrorItemCacheKeyPrefix = "MirrorItem_";
 }

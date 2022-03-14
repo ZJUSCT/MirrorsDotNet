@@ -1,9 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Text.Json;
 using System.Threading.Tasks;
+using AutoMapper;
 using Manager.Models;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Caching.Distributed;
 using Microsoft.Extensions.Logging;
 
@@ -14,14 +17,17 @@ namespace Manager.Controllers;
 public class MirrorsController : ControllerBase
 {
     private readonly ILogger<MirrorsController> _logger;
-    // private readonly MirrorStatus.SiteInfo _siteInfo;
-    // private readonly MirrorStatusContext _mirrorStatusContext;
+    private readonly MirrorContext _context;
     private readonly IDistributedCache _cache;
+    private readonly IMapper _mapper;
 
-    public MirrorsController(ILogger<MirrorsController> logger, IDistributedCache cache)
+    public MirrorsController(ILogger<MirrorsController> logger, MirrorContext context, IDistributedCache cache,
+        IMapper mapper)
     {
         _logger = logger;
+        _context = context;
         _cache = cache;
+        _mapper = mapper;
     }
 
     /// <summary>
@@ -31,7 +37,7 @@ public class MirrorsController : ControllerBase
     [HttpGet]
     public async Task<List<Mirror.MirrorItemDto>> GetAllMirrors()
     {
-        var serializedString = await _cache.GetStringAsync(Utils.Constants.MirrorStatusCacheKey);
+        var serializedString = await _cache.GetStringAsync(Utils.Constants.MirrorAllCacheKey);
         if (serializedString != null)
         {
             return JsonSerializer.Deserialize<List<Mirror.MirrorItemDto>>(serializedString);
@@ -39,68 +45,13 @@ public class MirrorsController : ControllerBase
 
         _logger.LogInformation("Status cache miss, regenerating");
 
-        // var packageList = await _mirrorStatusContext.Packages.ToListAsync();
-        // var releaseList = await _mirrorStatusContext.Releases.Include(release => release.UrlItems).ToListAsync();
-        var res = new List<Mirror.MirrorItemDto>()
-        {
-            new()
-            {
-                Id = "debian",
-                Url = "/debian",
-                Name = new I18N.StringBase
-                {
-                    En = "Debian",
-                    Zh = "Debian 发行版"
-                },
-                Description = new I18N.StringBase
-                {
-                    En =
-                        "Debian is a free and open-source operating system, based on the Linux kernel, and is the default distribution for the GNU/Linux operating system family.",
-                    Zh = "Debian 是一个基于 Linux 内核的免费和开源操作系统，它是 GNU/Linux 操作系统的默认发行版。"
-                },
-                Status = Mirror.MirrorStatus.Succeeded,
-                LastSuccess = DateTime.Now,
-                LastUpdated = DateTime.Now,
-                NextScheduled = DateTime.Now + TimeSpan.FromHours(2),
-                Files = new List<Mirror.UrlItem>()
-                {
-                    new()
-                    {
-                        Name = "amd64-generic-hwe-12.04",
-                        Url = "xxx/xxx.iso"
-                    },
-                    new()
-                    {
-                        Name = "amd64-generic-hwe-14.04",
-                        Url = "xxx/xxx.iso"
-                    },
-                    new()
-                    {
-                        Name = "amd64-generic-hwe-16.04",
-                        Url = "xxx/xxx.iso"
-                    },
-                    new()
-                    {
-                        Name = "amd64-generic-hwe-18.04",
-                        Url = "xxx/xxx.iso"
-                    },
-                    new()
-                    {
-                        Name = "amd64-generic-hwe-20.04",
-                        Url = "xxx/xxx.iso"
-                    },
-                    new()
-                    {
-                        Name = "amd64-generic-hwe-21.10",
-                        Url = "xxx/xxx.iso"
-                    }
-                }
-            }
-        };
-        await _cache.SetStringAsync(Utils.Constants.MirrorStatusCacheKey, JsonSerializer.Serialize(res));
+        var mirrorList = await _context.Mirrors.ToListAsync();
+        var mirrorDtoList = mirrorList.Select(mirror => _mapper.Map<Mirror.MirrorItemDto>(mirror)).ToList();
+
+        await _cache.SetStringAsync(Utils.Constants.MirrorAllCacheKey, JsonSerializer.Serialize(mirrorDtoList));
         _logger.LogInformation("Wrote status to cache");
 
-        return res;
+        return mirrorDtoList;
     }
 
     /// <summary>
@@ -108,62 +59,24 @@ public class MirrorsController : ControllerBase
     /// </summary>
     /// <returns></returns>
     [HttpGet("{id}")]
-    public async Task<Mirror.MirrorItemDto> GetMirror(string id)
+    public async Task<ActionResult<Mirror.MirrorItemDto>> GetMirror(string id)
     {
-        var res = new Mirror.MirrorItemDto()
+        var serializedString = await _cache.GetStringAsync(Utils.Constants.MirrorItemCacheKeyPrefix + id);
+        if (serializedString != null)
         {
-            Id = id,
-            Url = $"/{id}",
-            Name = new I18N.StringBase
-            {
-                En = "Debian",
-                Zh = "Debian 发行版"
-            },
-            Description = new I18N.StringBase
-            {
-                En =
-                    "Debian is a free and open-source operating system, based on the Linux kernel, and is the default distribution for the GNU/Linux operating system family.",
-                Zh = "Debian 是一个基于 Linux 内核的免费和开源操作系统，它是 GNU/Linux 操作系统的默认发行版。"
-            },
-            Status = Mirror.MirrorStatus.Succeeded,
-            LastSuccess = DateTime.Now,
-            LastUpdated = DateTime.Now,
-            NextScheduled = DateTime.Now + TimeSpan.FromHours(2),
-            Files = new List<Mirror.UrlItem>()
-            {
-                new()
-                {
-                    Name = "amd64-generic-hwe-12.04",
-                    Url = "xxx/xxx.iso"
-                },
-                new()
-                {
-                    Name = "amd64-generic-hwe-14.04",
-                    Url = "xxx/xxx.iso"
-                },
-                new()
-                {
-                    Name = "amd64-generic-hwe-16.04",
-                    Url = "xxx/xxx.iso"
-                },
-                new()
-                {
-                    Name = "amd64-generic-hwe-18.04",
-                    Url = "xxx/xxx.iso"
-                },
-                new()
-                {
-                    Name = "amd64-generic-hwe-20.04",
-                    Url = "xxx/xxx.iso"
-                },
-                new()
-                {
-                    Name = "amd64-generic-hwe-21.10",
-                    Url = "xxx/xxx.iso"
-                }
-            }
-        };
+            return JsonSerializer.Deserialize<Mirror.MirrorItemDto>(serializedString);
+        }
 
-        return res;
+        var mirrorItem = await _context.Mirrors.FindAsync(id);
+        if (mirrorItem == null)
+        {
+            return NotFound();
+        }
+
+        var mirrorDto = _mapper.Map<Mirror.MirrorItemDto>(mirrorItem);
+        await _cache.SetStringAsync(Utils.Constants.MirrorItemCacheKeyPrefix + id, JsonSerializer.Serialize(mirrorDto));
+        _logger.LogInformation("Wrote ${Id} status to cache", id);
+
+        return mirrorDto;
     }
 }
