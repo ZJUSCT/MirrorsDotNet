@@ -33,9 +33,9 @@ public class Mirror
     }
 
     /// <summary>
-    /// Index Job Configuration Class
+    /// File Index Job Configuration Class
     /// </summary>
-    public class IndexConfig
+    public class FileIndexConfig
     {
         // Basic
         [Key] public string Id { get; set; }

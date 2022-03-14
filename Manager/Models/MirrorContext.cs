@@ -9,5 +9,5 @@ public class MirrorContext : DbContext
     }
 
     public DbSet<Mirror.MirrorItem> Mirrors { get; set; }
-    public DbSet<Mirror.IndexConfig> IndexConfigs { get; set; }
+    public DbSet<Mirror.FileIndexConfig> IndexConfigs { get; set; }
 }

@@ -1,0 +1,16 @@
+# Basic Info
+Name:
+  en: Ubuntu
+  zh: Ubuntu 发行版
+Description:
+  en: Ubuntu is a Debian-based Linux distribution developed and maintained by Canonical Ltd.
+  zh: Ubuntu 是一个由 Canonical Ltd 开发和维护的基于 Debian 的 Linux 发行版。
+Url: /ubuntu
+HelpUrl: /help/ubuntu
+Type: Normal
+
+# Sync Config
+ProviderImage: xxx/xxxx
+Upstream: 'https://mirrors.bfsu.edu.cn/ubuntu'
+ExtraArgs: -6
+Cron: 0 * * * * *

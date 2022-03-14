@@ -1,0 +1,12 @@
+# [Ref] https://github.com/tuna/mirror-web/blob/master/geninfo/genisolist.ini
+
+# Basic Ingo
+Category: os
+
+# Index Config
+IndexPath: /ubuntu-cd
+Pattern: ubuntu-*.iso
+SortBy: $1
+
+# Register Target
+RegisterId: ubuntu

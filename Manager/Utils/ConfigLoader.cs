@@ -41,40 +41,32 @@ public class ConfigLoader
             logger.LogInformation("Loaded Mirror Sync Config {ConfigName}", mirrorConfig.Id);
         }
 
-        // TODO: Load Index Configs
-        // // Load Package Configs
-        // configContext.Packages.RemoveRange(configContext.Packages);
-        // var packageDirInfo = new DirectoryInfo(Constants.PackageConfigPath);
-        // foreach (var fi in packageDirInfo.GetFiles("*.yml", SearchOption.AllDirectories))
-        // {
-        //     var packageConfig = deserializer.Deserialize<MirrorPackage>(await File.ReadAllTextAsync(fi.FullName));
-        //     packageConfig.Name = Path.GetFileNameWithoutExtension(fi.Name);
-        //     await configContext.Packages.AddAsync(packageConfig);
-        //
-        //     var packageItem = await mirrorContext.Packages.FindAsync(packageConfig.MappedName);
-        //     if (packageItem == null)
-        //     {
-        //         var newPackageItem = mapper.Map<MirrorStatus.PackageInfoDto>(packageConfig);
-        //         newPackageItem.Status = packageConfig.Type switch
-        //         {
-        //             MirrorType.ReverseProxy => "R",
-        //             MirrorType.ProxyCache => "C",
-        //             MirrorType.Normal => "U", // set default status to 'Unknown'
-        //             _ => "U" // set default status to 'Unknown'
-        //         };
-        //         await mirrorContext.Packages.AddAsync(newPackageItem);
-        //     }
-        //     else
-        //     {
-        //         // update if existed
-        //         packageItem.Description = packageConfig.Description;
-        //         packageItem.Url = packageConfig.Url;
-        //         packageItem.HelpUrl = packageConfig.HelpUrl;
-        //         packageItem.Upstream = packageConfig.Upstream;
-        //     }
-        //
-        //     logger.LogInformation("Loaded Package Config {ConfigName}", packageConfig.Name);
-        // }
+        // Load Index Configs
+        var indexDirInfo = new DirectoryInfo(Constants.IndexConfigPath);
+        foreach (var fi in indexDirInfo.GetFiles("*.yml", SearchOption.AllDirectories))
+        {
+            var indexConfig =
+                deserializer.Deserialize<Mirror.FileIndexConfig>(await File.ReadAllTextAsync(fi.FullName));
+            indexConfig.Id = Path.GetFileNameWithoutExtension(fi.Name);
+
+            var indexConfigItem = await mirrorContext.IndexConfigs.FindAsync(indexConfig.Id);
+            if (indexConfigItem == null)
+            {
+                await mirrorContext.IndexConfigs.AddAsync(indexConfig);
+            }
+            else
+            {
+                // update if existed
+                indexConfigItem.Category = indexConfig.Category;
+                indexConfigItem.Pattern = indexConfig.Pattern;
+                indexConfigItem.ExcludePattern = indexConfig.ExcludePattern;
+                indexConfigItem.IndexPath = indexConfig.IndexPath;
+                indexConfigItem.RegisterId = indexConfig.RegisterId;
+                indexConfigItem.SortBy = indexConfig.SortBy;
+            }
+
+            logger.LogInformation("Loaded File Index Config {ConfigName}", indexConfig.Id);
+        }
 
         await mirrorContext.SaveChangesAsync();
     }
