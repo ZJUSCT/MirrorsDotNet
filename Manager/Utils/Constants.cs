@@ -7,12 +7,14 @@ public static class Constants
 {
     public const string ApiVersion = "v2";
     public const string ContentPath = "Data";
-    public const string ConfigPath = "Configs";
+    private const string ConfigPath = "Configs";
     public const string SyncConfigPath = $"{ConfigPath}/SyncConfig";
     public const string IndexConfigPath = $"{ConfigPath}/IndexConfig";
     public const string MirrorSqliteConnectionString = "Data Source=Status/mirror-status.db";
     public const string MirrorAllCacheKey = "MirrorStatus";
     public const string MirrorItemCacheKeyPrefix = "MirrorItem_";
     public const string SchedulerName = "MirrorsDotNet_Scheduler";
-    public const string QuartzSqliteConnectionString = "Data Source=Status/quartz-status.db";
+    public const string JobDataMapImage = "image";
+    public const string JobDataMapUpStream = "upstream";
+    public const string JobDataMapExtraArgs = "extra_args";
 }

@@ -17,11 +17,13 @@ public class ConfigLoader
     /// <param name="mirrorContext">Mirror status context</param>
     /// <param name="mapper">Auto mapper instance</param>
     /// <param name="logger">Logger instance</param>
-    public static async Task LoadConfigAsync(MirrorContext mirrorContext, IMapper mapper, ILogger logger, ISchedulerFactory schedulerFactory)
+    /// <param name="schedulerFactory">Quartz scheduler factory instance</param>
+    public static async Task LoadConfigAsync(MirrorContext mirrorContext, IMapper mapper, ILogger logger,
+        ISchedulerFactory schedulerFactory)
     {
         var deserializer = new DeserializerBuilder().Build();
 
-        // Load Sync Configs
+        // Load sync configs
         var syncDirInfo = new DirectoryInfo(Constants.SyncConfigPath);
         foreach (var fi in syncDirInfo.GetFiles("*.yml", SearchOption.AllDirectories))
         {
@@ -36,25 +38,34 @@ public class ConfigLoader
             }
             else
             {
-                // update if existed
+                // Update if existed
                 mirrorItem.UpdateFromConfig(mirrorConfig);
             }
-            var jobKey = new JobKey($"sync-job-{mirrorConfig.Id}", "sync-group");
+
+            logger.LogInformation("Loaded Mirror Sync Config {ConfigName}", mirrorConfig.Id);
+
+            // Create sync job for normal mirror
+            if (mirrorConfig.Type != Mirror.MirrorType.Normal) continue;
             var jobDetail = JobBuilder.Create<SyncJob>()
-                .WithIdentity(jobKey)
-                .UsingJobData("mirrorId", mirrorConfig.Id)
+                .WithIdentity($"sync-job-{mirrorConfig.Id}", "sync-group")
+                .UsingJobData(Constants.JobDataMapImage, mirrorConfig.ProviderImage)
+                .UsingJobData(Constants.JobDataMapUpStream, mirrorConfig.Upstream)
+                .UsingJobData(Constants.JobDataMapExtraArgs, mirrorConfig.ExtraArgs)
                 .Build();
             var trigger = TriggerBuilder.Create()
                 .WithIdentity($"sync-trigger-{mirrorConfig.Id}", "sync-group")
                 .WithCronSchedule(mirrorConfig.Cron)
                 .Build();
             var scheduler = await schedulerFactory.GetScheduler();
-            await scheduler.ScheduleJob(jobDetail, trigger);
 
-            logger.LogInformation("Loaded Mirror Sync Config {ConfigName}", mirrorConfig.Id);
+            // First delete old job, will return false if not existed
+            await scheduler.DeleteJob(jobDetail.Key);
+            logger.LogInformation("Created Mirror Job Config {JobName} {JobGroup}", jobDetail.Key.Name,
+                jobDetail.Key.Group);
+            await scheduler.ScheduleJob(jobDetail, trigger);
         }
 
-        // Load Index Configs
+        // Load index configs
         var indexDirInfo = new DirectoryInfo(Constants.IndexConfigPath);
         foreach (var fi in indexDirInfo.GetFiles("*.yml", SearchOption.AllDirectories))
         {
@@ -69,7 +80,7 @@ public class ConfigLoader
             }
             else
             {
-                // update if existed
+                // Update if existed
                 mirrorContext.Entry(indexConfigItem).CurrentValues.SetValues(indexConfig);
             }
 

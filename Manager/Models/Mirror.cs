@@ -15,12 +15,14 @@ public class Mirror
         Failed,
         Paused,
         Cached,
+        ReverseProxied,
         Unknown
     }
 
     public enum MirrorType
     {
         Normal,
+        Paused,
         ProxyCache,
         ReverseProxy
     }
@@ -99,6 +101,15 @@ public class Mirror
             ExtraArgs = config.ExtraArgs;
             Cron = config.Cron;
             TrigIndex = config.TrigIndex;
+
+            // Special types that affect the status
+            Status = config.Type switch
+            {
+                MirrorType.ProxyCache => MirrorStatus.Cached,
+                MirrorType.ReverseProxy => MirrorStatus.ReverseProxied,
+                MirrorType.Paused => MirrorStatus.Paused,
+                _ => Status
+            };
         }
 
         public void UpdateStatus(MirrorStatus status)
