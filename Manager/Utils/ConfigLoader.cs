@@ -1,8 +1,10 @@
 ﻿using System.IO;
 using System.Threading.Tasks;
 using AutoMapper;
+using Manager.Jobs;
 using Manager.Models;
 using Microsoft.Extensions.Logging;
+using Quartz;
 using YamlDotNet.Serialization;
 
 namespace Manager.Utils;
@@ -15,7 +17,7 @@ public class ConfigLoader
     /// <param name="mirrorContext">Mirror status context</param>
     /// <param name="mapper">Auto mapper instance</param>
     /// <param name="logger">Logger instance</param>
-    public static async Task LoadConfigAsync(MirrorContext mirrorContext, IMapper mapper, ILogger logger)
+    public static async Task LoadConfigAsync(MirrorContext mirrorContext, IMapper mapper, ILogger logger, ISchedulerFactory schedulerFactory)
     {
         var deserializer = new DeserializerBuilder().Build();
 
@@ -37,6 +39,17 @@ public class ConfigLoader
                 // update if existed
                 mirrorItem.UpdateFromConfig(mirrorConfig);
             }
+            var jobKey = new JobKey($"sync-job-{mirrorConfig.Id}", "sync-group");
+            var jobDetail = JobBuilder.Create<SyncJob>()
+                .WithIdentity(jobKey)
+                .UsingJobData("mirrorId", mirrorConfig.Id)
+                .Build();
+            var trigger = TriggerBuilder.Create()
+                .WithIdentity($"sync-trigger-{mirrorConfig.Id}", "sync-group")
+                .WithCronSchedule(mirrorConfig.Cron)
+                .Build();
+            var scheduler = await schedulerFactory.GetScheduler();
+            await scheduler.ScheduleJob(jobDetail, trigger);
 
             logger.LogInformation("Loaded Mirror Sync Config {ConfigName}", mirrorConfig.Id);
         }

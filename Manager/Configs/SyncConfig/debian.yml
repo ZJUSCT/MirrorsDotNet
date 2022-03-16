@@ -13,4 +13,4 @@ Type: Normal
 ProviderImage: xxx/xxxx
 Upstream: 'https://mirrors.bfsu.edu.cn/debian'
 ExtraArgs: -6
-Cron: 0 * * * * *
+Cron: 0 0/1 * * * ?

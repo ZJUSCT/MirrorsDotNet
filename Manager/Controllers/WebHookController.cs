@@ -7,6 +7,8 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Caching.Distributed;
 using Microsoft.Extensions.Logging;
+using Quartz;
+using Quartz.Core;
 
 namespace Manager.Controllers;
 
@@ -22,13 +24,15 @@ public class WebHookController : ControllerBase
     private readonly MirrorContext _context;
     private readonly IMapper _mapper;
     private readonly IDistributedCache _cache;
+    private readonly ISchedulerFactory _schedulerFactory;
 
-    public WebHookController(ILogger<WebHookController> logger, MirrorContext context, IMapper mapper, IDistributedCache cache)
+    public WebHookController(ILogger<WebHookController> logger, MirrorContext context, IMapper mapper, IDistributedCache cache, ISchedulerFactory schedulerFactory)
     {
         _logger = logger;
         _context = context;
         _mapper = mapper;
         _cache = cache;
+        _schedulerFactory = schedulerFactory;
     }
 
     /// <summary>
@@ -129,7 +133,7 @@ public class WebHookController : ControllerBase
     public async Task ReloadConfigs()
     {
         _logger.LogInformation("Reloading configs");
-        await ConfigLoader.LoadConfigAsync(_context, _mapper, _logger);
+        await ConfigLoader.LoadConfigAsync(_context, _mapper, _logger, _schedulerFactory);
         await _cache.RemoveAsync(Utils.Constants.MirrorAllCacheKey);
     }
 }

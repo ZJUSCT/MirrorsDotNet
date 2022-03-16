@@ -12,7 +12,7 @@ Type: Normal
 ProviderImage: xxx/xxxx
 Upstream: 'https://mirrors.bfsu.edu.cn/debian-cd'
 ExtraArgs: -6
-Cron: 0 * * * * *
+Cron: 0 0/1 * * * ?
 
 # Index Job
 TrigIndex: debian-iso  # will trig index job after sync success
