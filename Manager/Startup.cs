@@ -1,6 +1,7 @@
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using AutoMapper;
+using Manager.Jobs;
 using Manager.Models;
 using Manager.Utils;
 using Microsoft.AspNetCore.Builder;
@@ -40,6 +41,7 @@ public class Startup
         services.AddSwaggerGen(c => { c.SwaggerDoc(Constants.ApiVersion, new OpenApiInfo { Title = "Manager", Version = Constants.ApiVersion }); });
         services.AddQuartz(q =>
         {
+            q.UseJobFactory<CustomJobFactory>();
             // base quartz scheduler, job and trigger configuration
             q.SchedulerName = Constants.SchedulerName;
         });

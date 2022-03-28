@@ -14,7 +14,5 @@ public static class Constants
     public const string MirrorAllCacheKey = "MirrorStatus";
     public const string MirrorItemCacheKeyPrefix = "MirrorItem_";
     public const string SchedulerName = "MirrorsDotNet_Scheduler";
-    public const string JobDataMapImage = "image";
-    public const string JobDataMapUpStream = "upstream";
-    public const string JobDataMapExtraArgs = "extra_args";
+    public const string JobDataMapMirrorId = "MirrorId";
 }

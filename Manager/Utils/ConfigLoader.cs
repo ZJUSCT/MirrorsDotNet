@@ -48,9 +48,7 @@ public class ConfigLoader
             if (mirrorConfig.Type != Mirror.MirrorType.Normal) continue;
             var jobDetail = JobBuilder.Create<SyncJob>()
                 .WithIdentity($"sync-job-{mirrorConfig.Id}", "sync-group")
-                .UsingJobData(Constants.JobDataMapImage, mirrorConfig.ProviderImage)
-                .UsingJobData(Constants.JobDataMapUpStream, mirrorConfig.Upstream)
-                .UsingJobData(Constants.JobDataMapExtraArgs, mirrorConfig.ExtraArgs)
+                .UsingJobData(Constants.JobDataMapMirrorId, mirrorConfig.Id)
                 .Build();
             var trigger = TriggerBuilder.Create()
                 .WithIdentity($"sync-trigger-{mirrorConfig.Id}", "sync-group")

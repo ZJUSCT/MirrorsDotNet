@@ -164,4 +164,14 @@ public class Mirror
 
         public List<UrlItem> Files { get; set; }
     }
+
+    public class MirrorSyncJob
+    {
+        [Key] public int Id { get; set; }
+        public string MirrorId { get; set; }
+        public string WorkerId { get; set; }
+        public DateTime Scheduled { get; set; }
+        public DateTime Started { get; set; }
+        public DateTime Finished { get; set; }
+    }
 }
