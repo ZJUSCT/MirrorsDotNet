@@ -1,6 +1,7 @@
 ﻿using System.Linq;
 using System.Threading.Tasks;
 using AutoMapper;
+using Hangfire;
 using Manager.Models;
 using Manager.Utils;
 using Microsoft.AspNetCore.Http;
@@ -22,13 +23,15 @@ public class WebHookController : ControllerBase
     private readonly MirrorContext _context;
     private readonly IMapper _mapper;
     private readonly IDistributedCache _cache;
+    private readonly IRecurringJobManager _jobManager;
 
-    public WebHookController(ILogger<WebHookController> logger, MirrorContext context, IMapper mapper, IDistributedCache cache)
+    public WebHookController(ILogger<WebHookController> logger, MirrorContext context, IMapper mapper, IDistributedCache cache, IRecurringJobManager jobManager)
     {
         _logger = logger;
         _context = context;
         _mapper = mapper;
         _cache = cache;
+        _jobManager = jobManager;
     }
 
     /// <summary>
@@ -129,7 +132,7 @@ public class WebHookController : ControllerBase
     public async Task ReloadConfigs()
     {
         _logger.LogInformation("Reloading configs");
-        await ConfigLoader.LoadConfigAsync(_context, _mapper, _logger);
+        await ConfigLoader.LoadConfigAsync(_context, _mapper, _logger, _jobManager);
         await _cache.RemoveAsync(Utils.Constants.MirrorAllCacheKey);
     }
 }

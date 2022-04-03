@@ -70,10 +70,11 @@ public class Startup
                 var logger = serviceScope.ServiceProvider.GetRequiredService<ILogger<Startup>>();
                 var mirrorContext = serviceScope.ServiceProvider.GetRequiredService<MirrorContext>();
                 var mapper = serviceScope.ServiceProvider.GetRequiredService<IMapper>();
+                var jobManager = serviceScope.ServiceProvider.GetRequiredService<IRecurringJobManager>();
 
                 mirrorContext.Database.EnsureCreated();
 
-                var task = ConfigLoader.LoadConfigAsync(mirrorContext, mapper, logger);
+                var task = ConfigLoader.LoadConfigAsync(mirrorContext, mapper, logger, jobManager);
                 task.Wait();
             }
         }

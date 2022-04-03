@@ -1,6 +1,10 @@
-﻿using System.IO;
+﻿using System.Collections.Generic;
+using System.IO;
 using System.Threading.Tasks;
 using AutoMapper;
+using Hangfire;
+using Hangfire.Common;
+using Hangfire.Storage;
 using Manager.Models;
 using Microsoft.Extensions.Logging;
 using YamlDotNet.Serialization;
@@ -15,9 +19,17 @@ public class ConfigLoader
     /// <param name="mirrorContext">Mirror status context</param>
     /// <param name="mapper">Auto mapper instance</param>
     /// <param name="logger">Logger instance</param>
-    public static async Task LoadConfigAsync(MirrorContext mirrorContext, IMapper mapper, ILogger logger)
+    /// <param name="jobManager">HungFire RecurringJobManager</param>
+    public static async Task LoadConfigAsync(MirrorContext mirrorContext, IMapper mapper, ILogger logger, IRecurringJobManager jobManager)
     {
         var deserializer = new DeserializerBuilder().Build();
+
+        // Clear all recurring jobs
+        var recurringJobs = JobStorage.Current.GetConnection().GetRecurringJobs();
+        foreach (var job in recurringJobs)
+        {
+            jobManager.RemoveIfExists(job.Id);
+        }
 
         // Load sync configs
         var syncDirInfo = new DirectoryInfo(Constants.SyncConfigPath);
@@ -39,6 +51,9 @@ public class ConfigLoader
             }
 
             logger.LogInformation("Loaded Mirror Sync Config {ConfigName}", mirrorConfig.Id);
+
+            // TODO: Add recurring job
+            jobManager.AddOrUpdate($"Job_{mirrorConfig.Id}", Job.FromExpression(() => System.Console.WriteLine($"Job {mirrorConfig.Id}")), mirrorConfig.Cron);
         }
 
         // Load index configs
