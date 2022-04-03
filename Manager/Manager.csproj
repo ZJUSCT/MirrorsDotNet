@@ -11,7 +11,6 @@
         <PackageReference Include="Microsoft.EntityFrameworkCore" Version="6.0.3" />
         <PackageReference Include="Microsoft.EntityFrameworkCore.Sqlite" Version="6.0.3" />
         <PackageReference Include="Microsoft.EntityFrameworkCore.Sqlite.Design" Version="1.1.6" />
-        <PackageReference Include="Quartz.AspNetCore" Version="3.3.3" />
         <PackageReference Include="Swashbuckle.AspNetCore" Version="6.3.0" />
         <PackageReference Include="YamlDotNet" Version="11.2.1" />
     </ItemGroup>

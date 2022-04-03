@@ -1,10 +1,8 @@
 ﻿using System.IO;
 using System.Threading.Tasks;
 using AutoMapper;
-using Manager.Jobs;
 using Manager.Models;
 using Microsoft.Extensions.Logging;
-using Quartz;
 using YamlDotNet.Serialization;
 
 namespace Manager.Utils;
@@ -17,9 +15,7 @@ public class ConfigLoader
     /// <param name="mirrorContext">Mirror status context</param>
     /// <param name="mapper">Auto mapper instance</param>
     /// <param name="logger">Logger instance</param>
-    /// <param name="schedulerFactory">Quartz scheduler factory instance</param>
-    public static async Task LoadConfigAsync(MirrorContext mirrorContext, IMapper mapper, ILogger logger,
-        ISchedulerFactory schedulerFactory)
+    public static async Task LoadConfigAsync(MirrorContext mirrorContext, IMapper mapper, ILogger logger)
     {
         var deserializer = new DeserializerBuilder().Build();
 
@@ -43,24 +39,6 @@ public class ConfigLoader
             }
 
             logger.LogInformation("Loaded Mirror Sync Config {ConfigName}", mirrorConfig.Id);
-
-            // Create sync job for normal mirror
-            if (mirrorConfig.Type != Mirror.MirrorType.Normal) continue;
-            var jobDetail = JobBuilder.Create<SyncJob>()
-                .WithIdentity($"sync-job-{mirrorConfig.Id}", "sync-group")
-                .UsingJobData(Constants.JobDataMapMirrorId, mirrorConfig.Id)
-                .Build();
-            var trigger = TriggerBuilder.Create()
-                .WithIdentity($"sync-trigger-{mirrorConfig.Id}", "sync-group")
-                .WithCronSchedule(mirrorConfig.Cron)
-                .Build();
-            var scheduler = await schedulerFactory.GetScheduler();
-
-            // First delete old job, will return false if not existed
-            await scheduler.DeleteJob(jobDetail.Key);
-            logger.LogInformation("Created Mirror Job Config {JobName} {JobGroup}", jobDetail.Key.Name,
-                jobDetail.Key.Group);
-            await scheduler.ScheduleJob(jobDetail, trigger);
         }
 
         // Load index configs

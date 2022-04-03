@@ -13,6 +13,4 @@ public static class Constants
     public const string MirrorSqliteConnectionString = "Data Source=Status/mirror-status.db";
     public const string MirrorAllCacheKey = "MirrorStatus";
     public const string MirrorItemCacheKeyPrefix = "MirrorItem_";
-    public const string SchedulerName = "MirrorsDotNet_Scheduler";
-    public const string JobDataMapMirrorId = "MirrorId";
 }

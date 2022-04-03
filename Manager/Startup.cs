@@ -1,7 +1,6 @@
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using AutoMapper;
-using Manager.Jobs;
 using Manager.Models;
 using Manager.Utils;
 using Microsoft.AspNetCore.Builder;
@@ -12,7 +11,6 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Microsoft.OpenApi.Models;
-using Quartz;
 
 namespace Manager;
 
@@ -39,17 +37,6 @@ public class Startup
                 options.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter(JsonNamingPolicy.CamelCase));
             });
         services.AddSwaggerGen(c => { c.SwaggerDoc(Constants.ApiVersion, new OpenApiInfo { Title = "Manager", Version = Constants.ApiVersion }); });
-        services.AddQuartz(q =>
-        {
-            q.UseJobFactory<CustomJobFactory>();
-            // base quartz scheduler, job and trigger configuration
-            q.SchedulerName = Constants.SchedulerName;
-        });
-        services.AddQuartzServer(options =>
-        {
-            // when shutting down we want jobs to complete gracefully
-            options.WaitForJobsToComplete = true;
-        });
     }
 
     // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
@@ -69,11 +56,10 @@ public class Startup
                 var logger = serviceScope.ServiceProvider.GetRequiredService<ILogger<Startup>>();
                 var mirrorContext = serviceScope.ServiceProvider.GetRequiredService<MirrorContext>();
                 var mapper = serviceScope.ServiceProvider.GetRequiredService<IMapper>();
-                var schedulerFactory = serviceScope.ServiceProvider.GetRequiredService<ISchedulerFactory>();
 
                 mirrorContext.Database.EnsureCreated();
 
-                var task = ConfigLoader.LoadConfigAsync(mirrorContext, mapper, logger, schedulerFactory);
+                var task = ConfigLoader.LoadConfigAsync(mirrorContext, mapper, logger);
                 task.Wait();
             }
         }
