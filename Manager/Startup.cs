@@ -1,6 +1,9 @@
+using System;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using AutoMapper;
+using Hangfire;
+using Hangfire.SQLite;
 using Manager.Models;
 using Manager.Utils;
 using Microsoft.AspNetCore.Builder;
@@ -37,6 +40,17 @@ public class Startup
                 options.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter(JsonNamingPolicy.CamelCase));
             });
         services.AddSwaggerGen(c => { c.SwaggerDoc(Constants.ApiVersion, new OpenApiInfo { Title = "Manager", Version = Constants.ApiVersion }); });
+        services.AddHangfire(configuration => configuration
+            .SetDataCompatibilityLevel(CompatibilityLevel.Version_170)
+            .UseSimpleAssemblyNameTypeSerializer()
+            .UseRecommendedSerializerSettings()
+            .UseSQLiteStorage(Constants.HangFireSqliteConnectionString));
+        services.AddHangfireServer(configuration =>
+        {
+            configuration.WorkerCount = 1;
+            configuration.ServerName = Constants.HangFireServerName;
+            configuration.HeartbeatInterval = TimeSpan.FromMinutes(1);
+        });
     }
 
     // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
@@ -64,10 +78,16 @@ public class Startup
             }
         }
 
+        app.UseHangfireDashboard();
+
         app.UseRouting();
 
         app.UseAuthorization();
 
-        app.UseEndpoints(endpoints => { endpoints.MapControllers(); });
+        app.UseEndpoints(endpoints =>
+        {
+            endpoints.MapControllers();
+            endpoints.MapHangfireDashboard();
+        });
     }
 }
