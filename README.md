@@ -1,6 +1,6 @@
 # Mirrors.NET
 
-Mirrors.NET is a simple, fast, and reliable mirroring service build with .NET. It's currently serving for [ZJU's mirror site](http://mirrors.zju.edu.cn).
+Mirrors.NET is a simple, fast, and reliable mirror management service build with .NET. It's currently serving for [ZJU's mirror site](http://mirrors.zju.edu.cn).
 
 ## Architecture
 
@@ -10,7 +10,7 @@ Mirrors.NET is a simple, fast, and reliable mirroring service build with .NET. I
 
 #### API
 
-ref: https://github.com/mirrorz-org/mirrorz#data-format-v15-draft
+
 
 #### Configs
 
@@ -18,11 +18,10 @@ Example:
 
 ```text
 Configs
-├── Packages
+├── SyncConfig
 │   └── debian.yml
-├── Releases
-│   └── debian-iso.yml
-└── site.yml
+└── IndexConfig
+    └── debian-iso.yml
 ```
 
 ### Worker
