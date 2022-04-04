@@ -1,18 +1,19 @@
 # Basic Info
 Name:
-  en: Debian ISO
-  zh: Debian ISO
+  en: Debian CD
+  zh: Debian 安装映像
 Description:
   en: Debian Images
-  zh: Debian Images
+  zh: Debian 安装映像
 Url: /debian-cd
+Location: /data/root/debian-cd
 Type: Normal
 
 # Sync Config
 ProviderImage: xxx/xxxx
 Upstream: 'https://mirrors.bfsu.edu.cn/debian-cd'
 ExtraArgs: -6
-Cron: 0 0/1 * * * ?
+Cron: '*/3 * * * *'
 
 # Index Job
 TrigIndex: debian-iso  # will trig index job after sync success

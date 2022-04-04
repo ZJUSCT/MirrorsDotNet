@@ -22,7 +22,7 @@ public class FileService
     /// <param name="sortBy">string to sort by</param>
     /// <returns>List of UrlItems</returns>
     /// <exception cref="ArgumentException"></exception>
-    public static List<Mirror.UrlItem> GenIndex(string indexPath, string regexPattern, string sortBy,
+    public static List<UrlItem> GenIndex(string indexPath, string regexPattern, string sortBy,
         string excludePattern = null)
     {
         // Data structure to hold names of subfolders to be
@@ -31,7 +31,7 @@ public class FileService
         var root = $"{Constants.ContentPath}{indexPath}";
         var rx = new Regex(@$"^{regexPattern}$", RegexOptions.Compiled);
         var excludeRx = new Regex(@$"{excludePattern}", RegexOptions.Compiled);
-        var res = new List<Mirror.UrlItem>();
+        var res = new List<UrlItem>();
 
         if (!Directory.Exists(root))
         {
@@ -96,7 +96,7 @@ public class FileService
                     var matches = rx.Matches(fi.Name);
                     if (matches.Count == 0) continue; // file not match
                     if (excludeRx.IsMatch(fi.FullName)) continue; // file path is excluded
-                    res.Add(new Mirror.UrlItem
+                    res.Add(new UrlItem
                     {
                         Name = fi.Name,
                         Url = $"/{Path.GetRelativePath(Constants.ContentPath, fi.FullName)}",

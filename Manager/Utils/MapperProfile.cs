@@ -7,7 +7,8 @@ public class MapperProfile: Profile
 {
     public MapperProfile()
     {
-        CreateMap<Mirror.MirrorConfig, Mirror.MirrorItem>();
-        CreateMap<Mirror.MirrorItem, Mirror.MirrorItemDto>();
+        CreateMap<MirrorConfig, MirrorItem>();
+        CreateMap<MirrorItem, MirrorItemDto>();
+        CreateMap<MirrorSyncJob, MirrorSyncJobDto>();
     }
 }

@@ -35,18 +35,18 @@ public class MirrorsController : ControllerBase
     /// </summary>
     /// <returns></returns>
     [HttpGet]
-    public async Task<List<Mirror.MirrorItemDto>> GetAllMirrors()
+    public async Task<List<MirrorItemDto>> GetAllMirrors()
     {
         var serializedString = await _cache.GetStringAsync(Utils.Constants.MirrorAllCacheKey);
         if (serializedString != null)
         {
-            return JsonSerializer.Deserialize<List<Mirror.MirrorItemDto>>(serializedString);
+            return JsonSerializer.Deserialize<List<MirrorItemDto>>(serializedString);
         }
 
         _logger.LogInformation("Status cache miss, regenerating");
 
         var mirrorList = await _context.Mirrors.ToListAsync();
-        var mirrorDtoList = mirrorList.Select(mirror => _mapper.Map<Mirror.MirrorItemDto>(mirror)).ToList();
+        var mirrorDtoList = mirrorList.Select(mirror => _mapper.Map<MirrorItemDto>(mirror)).ToList();
 
         await _cache.SetStringAsync(Utils.Constants.MirrorAllCacheKey, JsonSerializer.Serialize(mirrorDtoList));
         _logger.LogInformation("Wrote status to cache");
@@ -59,12 +59,12 @@ public class MirrorsController : ControllerBase
     /// </summary>
     /// <returns></returns>
     [HttpGet("{id}")]
-    public async Task<ActionResult<Mirror.MirrorItemDto>> GetMirror(string id)
+    public async Task<ActionResult<MirrorItemDto>> GetMirror(string id)
     {
         var serializedString = await _cache.GetStringAsync(Utils.Constants.MirrorItemCacheKeyPrefix + id);
         if (serializedString != null)
         {
-            return JsonSerializer.Deserialize<Mirror.MirrorItemDto>(serializedString);
+            return JsonSerializer.Deserialize<MirrorItemDto>(serializedString);
         }
 
         var mirrorItem = await _context.Mirrors.FindAsync(id);
@@ -73,7 +73,7 @@ public class MirrorsController : ControllerBase
             return NotFound();
         }
 
-        var mirrorDto = _mapper.Map<Mirror.MirrorItemDto>(mirrorItem);
+        var mirrorDto = _mapper.Map<MirrorItemDto>(mirrorItem);
         await _cache.SetStringAsync(Utils.Constants.MirrorItemCacheKeyPrefix + id, JsonSerializer.Serialize(mirrorDto));
         _logger.LogInformation("Wrote ${Id} status to cache", id);
 

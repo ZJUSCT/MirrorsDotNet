@@ -31,13 +31,13 @@ public class ConfigService
         var syncDirInfo = new DirectoryInfo(Constants.SyncConfigPath);
         foreach (var fi in syncDirInfo.GetFiles("*.yml", SearchOption.AllDirectories))
         {
-            var mirrorConfig = deserializer.Deserialize<Mirror.MirrorConfig>(await File.ReadAllTextAsync(fi.FullName));
+            var mirrorConfig = deserializer.Deserialize<MirrorConfig>(await File.ReadAllTextAsync(fi.FullName));
             mirrorConfig.Id = Path.GetFileNameWithoutExtension(fi.Name);
 
             var mirrorItem = await mirrorContext.Mirrors.FindAsync(mirrorConfig.Id);
             if (mirrorItem == null)
             {
-                var newMirrorItem = mapper.Map<Mirror.MirrorItem>(mirrorConfig);
+                var newMirrorItem = mapper.Map<MirrorItem>(mirrorConfig);
                 await mirrorContext.Mirrors.AddAsync(newMirrorItem);
             }
             else
@@ -75,7 +75,7 @@ public class ConfigService
         foreach (var fi in indexDirInfo.GetFiles("*.yml", SearchOption.AllDirectories))
         {
             var indexConfig =
-                deserializer.Deserialize<Mirror.FileIndexConfig>(await File.ReadAllTextAsync(fi.FullName));
+                deserializer.Deserialize<FileIndexConfig>(await File.ReadAllTextAsync(fi.FullName));
             indexConfig.Id = Path.GetFileNameWithoutExtension(fi.Name);
 
             var indexConfigItem = await mirrorContext.IndexConfigs.FindAsync(indexConfig.Id);

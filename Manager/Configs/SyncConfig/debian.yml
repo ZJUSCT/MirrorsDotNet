@@ -1,11 +1,12 @@
 # Basic Info
 Name:
   en: Debian
-  zh: Debian
+  zh: Debian 发行版
 Description:
   en: Debian Packages
-  zh: Debian Packages
+  zh: Debian 发行版包
 Url: /debian
+Location: /data/root/debian
 HelpUrl: /help/debian
 Type: Normal
 
@@ -13,4 +14,4 @@ Type: Normal
 ProviderImage: xxx/xxxx
 Upstream: 'https://mirrors.bfsu.edu.cn/debian'
 ExtraArgs: -6
-Cron: 0 0/1 * * * ?
+Cron: '*/1 * * * *'

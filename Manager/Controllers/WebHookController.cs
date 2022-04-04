@@ -53,7 +53,7 @@ public class WebHookController : ControllerBase
     /// <param name="reportStatus">new status</param>
     [HttpPatch("sync/{id}")]
     public async Task<IActionResult> UpdateSyncStatus(string id,
-        [FromForm(Name = "status")] Mirror.MirrorStatus reportStatus)
+        [FromForm(Name = "status")] MirrorStatus reportStatus)
     {
         _logger.LogInformation("Update Mirror Sync Status: {Id} {Status}", id, reportStatus);
 
