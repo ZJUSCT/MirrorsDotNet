@@ -15,4 +15,5 @@ public static class Constants
     public const string MirrorItemCacheKeyPrefix = "MirrorItem_";
     public const string HangFireSqliteConnectionString = "Data Source=Status/hangfire-status.db;";
     public const string HangFireServerName = "HangFireCronScheduler";
+    public const string HangFireJobPrefix = "SyncJob_";
 }

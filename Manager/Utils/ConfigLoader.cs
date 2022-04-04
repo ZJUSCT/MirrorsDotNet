@@ -24,12 +24,8 @@ public class ConfigLoader
     {
         var deserializer = new DeserializerBuilder().Build();
 
-        // Clear all recurring jobs
-        var recurringJobs = JobStorage.Current.GetConnection().GetRecurringJobs();
-        foreach (var job in recurringJobs)
-        {
-            jobManager.RemoveIfExists(job.Id);
-        }
+        // Get all recurring jobs
+        var restRecurringJobs = JobStorage.Current.GetConnection().GetRecurringJobs();
 
         // Load sync configs
         var syncDirInfo = new DirectoryInfo(Constants.SyncConfigPath);
@@ -49,11 +45,23 @@ public class ConfigLoader
                 // Update if existed
                 mirrorItem.UpdateFromConfig(mirrorConfig);
             }
-
             logger.LogInformation("Loaded Mirror Sync Config {ConfigName}", mirrorConfig.Id);
 
             // TODO: Add recurring job
-            jobManager.AddOrUpdate($"Job_{mirrorConfig.Id}", Job.FromExpression(() => System.Console.WriteLine($"Job {mirrorConfig.Id}")), mirrorConfig.Cron);
+            jobManager.AddOrUpdate($"{Constants.HangFireJobPrefix}{mirrorConfig.Id}", Job.FromExpression(() => System.Console.WriteLine($"Job {mirrorConfig.Id}")), mirrorConfig.Cron);
+            var res = restRecurringJobs.Find(x => x.Id == $"{Constants.HangFireJobPrefix}{mirrorConfig.Id}");
+            if (res != null)
+            {
+                // Remove from rest recurring job list
+                restRecurringJobs.Remove(res);
+            }
+            logger.LogInformation("Update Mirror Sync Job {JobId}", $"{Constants.HangFireJobPrefix}{mirrorConfig.Id}");
+        }
+
+        // Remove rest recurring jobs
+        foreach (var job in restRecurringJobs)
+        {
+            jobManager.RemoveIfExists(job.Id);
         }
 
         // Load index configs
