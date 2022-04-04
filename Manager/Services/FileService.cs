@@ -4,13 +4,14 @@ using System.IO;
 using System.Linq;
 using System.Text.RegularExpressions;
 using Manager.Models;
+using Manager.Utils;
 
-namespace Manager.Utils;
+namespace Manager.Services;
 
 /// <summary>
 /// Scan Release Directories to generate index
 /// </summary>
-public class DirWalker
+public class FileService
 {
     /// <summary>
     /// Traverse the directory tree and generate the index

@@ -5,6 +5,7 @@ using AutoMapper;
 using Hangfire;
 using Hangfire.SQLite;
 using Manager.Models;
+using Manager.Services;
 using Manager.Utils;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
@@ -74,7 +75,7 @@ public class Startup
 
                 mirrorContext.Database.EnsureCreated();
 
-                var task = ConfigLoader.LoadConfigAsync(mirrorContext, mapper, logger, jobManager);
+                var task = ConfigService.LoadConfigAsync(mirrorContext, mapper, logger, jobManager);
                 task.Wait();
             }
         }

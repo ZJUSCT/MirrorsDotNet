@@ -1,17 +1,16 @@
-﻿using System.Collections.Generic;
-using System.IO;
+﻿using System.IO;
 using System.Threading.Tasks;
 using AutoMapper;
 using Hangfire;
-using Hangfire.Common;
 using Hangfire.Storage;
 using Manager.Models;
+using Manager.Utils;
 using Microsoft.Extensions.Logging;
 using YamlDotNet.Serialization;
 
-namespace Manager.Utils;
+namespace Manager.Services;
 
-public class ConfigLoader
+public class ConfigService
 {
     /// <summary>
     /// Load YAML mirror configs 
@@ -20,7 +19,8 @@ public class ConfigLoader
     /// <param name="mapper">Auto mapper instance</param>
     /// <param name="logger">Logger instance</param>
     /// <param name="jobManager">HungFire RecurringJobManager</param>
-    public static async Task LoadConfigAsync(MirrorContext mirrorContext, IMapper mapper, ILogger logger, IRecurringJobManager jobManager)
+    public static async Task LoadConfigAsync(MirrorContext mirrorContext, IMapper mapper, ILogger logger,
+        IRecurringJobManager jobManager)
     {
         var deserializer = new DeserializerBuilder().Build();
 
@@ -45,16 +45,22 @@ public class ConfigLoader
                 // Update if existed
                 mirrorItem.UpdateFromConfig(mirrorConfig);
             }
+
             logger.LogInformation("Loaded Mirror Sync Config {ConfigName}", mirrorConfig.Id);
 
-            // TODO: Add recurring job
-            jobManager.AddOrUpdate($"{Constants.HangFireJobPrefix}{mirrorConfig.Id}", Job.FromExpression(() => System.Console.WriteLine($"Job {mirrorConfig.Id}")), mirrorConfig.Cron);
+            // Add recurring job
+            jobManager.AddOrUpdate<ScheduleService>(
+                $"{Constants.HangFireJobPrefix}{mirrorConfig.Id}",
+                x => x.Schedule(mirrorConfig.Id),
+                mirrorConfig.Cron
+            );
             var res = restRecurringJobs.Find(x => x.Id == $"{Constants.HangFireJobPrefix}{mirrorConfig.Id}");
             if (res != null)
             {
                 // Remove from rest recurring job list
                 restRecurringJobs.Remove(res);
             }
+
             logger.LogInformation("Update Mirror Sync Job {JobId}", $"{Constants.HangFireJobPrefix}{mirrorConfig.Id}");
         }
 

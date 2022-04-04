@@ -3,6 +3,7 @@ using System.Threading.Tasks;
 using AutoMapper;
 using Hangfire;
 using Manager.Models;
+using Manager.Services;
 using Manager.Utils;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -95,7 +96,7 @@ public class WebHookController : ControllerBase
             return StatusCode(StatusCodes.Status500InternalServerError, "Index Config Error");
         }
 
-        var newUrlItems = DirWalker.GenIndex(indexConfig.IndexPath, indexConfig.Pattern, indexConfig.SortBy);
+        var newUrlItems = FileService.GenIndex(indexConfig.IndexPath, indexConfig.Pattern, indexConfig.SortBy);
 
         // update url items
         // ref: https://docs.microsoft.com/en-us/ef/core/saving/disconnected-entities#handling-deletes
@@ -132,7 +133,7 @@ public class WebHookController : ControllerBase
     public async Task ReloadConfigs()
     {
         _logger.LogInformation("Reloading configs");
-        await ConfigLoader.LoadConfigAsync(_context, _mapper, _logger, _jobManager);
+        await ConfigService.LoadConfigAsync(_context, _mapper, _logger, _jobManager);
         await _cache.RemoveAsync(Utils.Constants.MirrorAllCacheKey);
     }
 }
