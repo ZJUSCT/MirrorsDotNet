@@ -20,6 +20,6 @@ public class ScheduleService
         var mirrorItem = await ctx.Mirrors.FindAsync(id);
 
         if (mirrorItem == null) return;
-        Console.WriteLine($"{mirrorItem.Id} is scheduled. Upstream: {mirrorItem.Upstream}");;
+        Console.WriteLine($"{mirrorItem.Id} is scheduled. Upstream: {mirrorItem.Upstream}");
     }
 }
