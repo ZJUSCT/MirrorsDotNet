@@ -168,9 +168,11 @@ public class MirrorItemDto
 
 public enum JobStatus
 {
+    // Un-Done status
     Pending = 0,
     Assigned = 1,
     Running = 2,
+    // Done status
     Succeeded = 3,
     Failed = 4
 }
@@ -184,10 +186,11 @@ public class MirrorSyncJob
     public string Upstream { get; set; }
     public string ExtraArgs { get; set; }
 
-    [ConcurrencyCheck] public string WorkerId { get; set; }
+    public string WorkerId { get; set; }
     public DateTime ScheduleTime { get; set; }
     public DateTime UpdateTime { get; set; }
     public JobStatus Status { get; set; }
+    public string ErrorMessage { get; set; }
 }
 
 public class MirrorSyncJobDto
@@ -198,4 +201,12 @@ public class MirrorSyncJobDto
     public string Location { get; set; }
     public string Upstream { get; set; }
     public string ExtraArgs { get; set; }
+}
+
+public class SyncJobUpdateForm
+{
+    public string WorkerId { get; set; }
+    public int JobId { get; set; }
+    public JobStatus Status { get; set; }
+    public string ErrorMessage { get; set; }
 }
