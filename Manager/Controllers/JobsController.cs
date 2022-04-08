@@ -74,6 +74,7 @@ public class JobController : ControllerBase
             return Ok(jobDto);
         }
         Mutex.ReleaseMutex();
+        _logger.LogInformation("Worker {WorkerId} requested, but no job to be assigned", workerId);
         return NotFound();
     }
 
@@ -140,6 +141,7 @@ public class JobController : ControllerBase
         }
         await _context.SaveChangesAsync();
         await transaction.CommitAsync();
+        _logger.LogInformation("Updated job {JobId} status to {Status}", jobId, form.Status);
         return Ok();
     }
 }
