@@ -19,7 +19,7 @@ public class JobController : ControllerBase
     private readonly ILogger<JobController> _logger;
     private readonly MirrorContext _context;
     private readonly IMapper _mapper;
-    private static Mutex _mutex = new();
+    private static readonly Mutex Mutex = new();
 
     public JobController(ILogger<JobController> logger, MirrorContext context, IMapper mapper)
     {
@@ -51,7 +51,7 @@ public class JobController : ControllerBase
             return BadRequest("Worker id is required");
         }
 
-        _mutex.WaitOne();
+        Mutex.WaitOne();
         using var transaction = _context.Database.BeginTransaction();
         var firstUnDoneJob = _context.SyncJobs.FirstOrDefault(x => x.Status < JobStatus.Succeeded);
         if (firstUnDoneJob != null)
@@ -59,7 +59,7 @@ public class JobController : ControllerBase
             var relatedMirrorItem = _context.Mirrors.FirstOrDefault(x => x.Id == firstUnDoneJob.MirrorId);
             if (relatedMirrorItem == null)
             {
-                _mutex.ReleaseMutex();
+                Mutex.ReleaseMutex();
                 return BadRequest("Related mirror item not found");
             }
 
@@ -69,11 +69,11 @@ public class JobController : ControllerBase
             _context.SaveChanges();
             transaction.Commit();
             _logger.LogInformation("Job {JobId} for mirror {MirrorId} assigned to worker {WorkerId}", firstUnDoneJob.Id, firstUnDoneJob.MirrorId, workerId);
-            _mutex.ReleaseMutex();
+            Mutex.ReleaseMutex();
             var jobDto = _mapper.Map<MirrorSyncJobDto>(firstUnDoneJob);
             return Ok(jobDto);
         }
-        _mutex.ReleaseMutex();
+        Mutex.ReleaseMutex();
         return NotFound();
     }
 
@@ -113,7 +113,7 @@ public class JobController : ControllerBase
         var relatedMirrorItem = await _context.Mirrors.FirstOrDefaultAsync(x => x.Id == job.MirrorId);
         if (relatedMirrorItem == null)
         {
-            _mutex.ReleaseMutex();
+            Mutex.ReleaseMutex();
             return BadRequest("Related mirror item not found");
         }
 
