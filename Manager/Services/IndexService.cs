@@ -3,16 +3,26 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text.RegularExpressions;
+using System.Threading.Tasks;
 using Manager.Models;
 using Manager.Utils;
+using Microsoft.Extensions.Logging;
 
 namespace Manager.Services;
 
 /// <summary>
 /// Scan Release Directories to generate index
 /// </summary>
-public class FileService
+public class IndexService : IIndexService
 {
+    private readonly ILogger<IndexService> _logger;
+    private readonly MirrorContext _context;
+    public IndexService(MirrorContext context, ILogger<IndexService> logger)
+    {
+        _context = context;
+        _logger = logger;
+    }
+
     /// <summary>
     /// Traverse the directory tree and generate the index
     /// ref: https://docs.microsoft.com/en-us/dotnet/csharp/programming-guide/file-system/how-to-iterate-through-a-directory-tree#examples
@@ -134,5 +144,52 @@ public class FileService
     {
         var pathInfo = new FileInfo(path);
         return pathInfo.Attributes.HasFlag(FileAttributes.ReparsePoint);
+    }
+
+    public async Task GenIndexAsync(string indexId)
+    {
+        _logger.LogInformation("UpdateReleaseSyncStatus: {Id}", indexId);
+
+        var indexConfig = await _context.IndexConfigs.FindAsync(indexId);
+        if (indexConfig == null)
+        {
+            _logger.LogError("Index config {Id} not found", indexId);
+            return;
+        }
+
+        var registerTargetId = indexConfig.RegisterId;
+        var targetMirrorItem = await _context.Mirrors.FindAsync(registerTargetId);
+
+        if (targetMirrorItem == null)
+        {
+            _logger.LogError("Target mirror {Id} not found", registerTargetId);
+            return;
+        }
+
+        var newUrlItems = GenIndex(indexConfig.IndexPath, indexConfig.Pattern, indexConfig.SortBy);
+
+        // update url items
+        // ref: https://docs.microsoft.com/en-us/ef/core/saving/disconnected-entities#handling-deletes
+        foreach (var urlItem in newUrlItems)
+        {
+            var existingUrlItem = targetMirrorItem.Files.FirstOrDefault(url => url.Url.Equals(urlItem.Url));
+
+            if (existingUrlItem == null)
+            {
+                targetMirrorItem.Files.Add(urlItem);
+            }
+            else
+            {
+                _context.Entry(existingUrlItem).CurrentValues.SetValues(urlItem);
+            }
+        }
+
+        foreach (var urlItem in targetMirrorItem.Files.Where(urlItem => !newUrlItems.Any(url => url.Url.Equals(urlItem.Url))))
+        {
+            _context.Remove(urlItem);
+        }
+
+        await _context.SaveChangesAsync();
+        _logger.LogInformation("Generated index {IndexId}", indexId);
     }
 }

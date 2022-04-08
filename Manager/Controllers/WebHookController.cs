@@ -23,13 +23,15 @@ public class WebHookController : ControllerBase
     private readonly MirrorContext _context;
     private readonly IMapper _mapper;
     private readonly IRecurringJobManager _jobManager;
+    private readonly IIndexService _indexService;
 
-    public WebHookController(ILogger<WebHookController> logger, MirrorContext context, IMapper mapper, IRecurringJobManager jobManager)
+    public WebHookController(ILogger<WebHookController> logger, MirrorContext context, IMapper mapper, IRecurringJobManager jobManager, IIndexService indexService)
     {
         _logger = logger;
         _context = context;
         _mapper = mapper;
         _jobManager = jobManager;
+        _indexService = indexService;
     }
 
     /// <summary>
@@ -66,55 +68,13 @@ public class WebHookController : ControllerBase
     }
 
     /// <summary>
-    /// Trig the manager to re-scan the release dir.
+    /// Trig the manager to re-gen the file index.
     /// </summary>
     /// <param name="id">file index id (should match config file)</param>
     [HttpPost("index/{id}")]
     public async Task<IActionResult> UpdateFileIndex(string id)
     {
-        _logger.LogInformation("UpdateReleaseSyncStatus: {Id}", id);
-
-        var indexConfig = await _context.IndexConfigs.FindAsync(id);
-        if (indexConfig == null)
-        {
-            _logger.LogError("Index config {Id} not found", id);
-            return NotFound();
-        }
-
-        var registerTargetId = indexConfig.RegisterId;
-        var targetMirrorItem = await _context.Mirrors.FindAsync(registerTargetId);
-
-        if (targetMirrorItem == null)
-        {
-            _logger.LogError("Target mirror {Id} not found", registerTargetId);
-            return StatusCode(StatusCodes.Status500InternalServerError, "Index Config Error");
-        }
-
-        var newUrlItems = FileService.GenIndex(indexConfig.IndexPath, indexConfig.Pattern, indexConfig.SortBy);
-
-        // update url items
-        // ref: https://docs.microsoft.com/en-us/ef/core/saving/disconnected-entities#handling-deletes
-        foreach (var urlItem in newUrlItems)
-        {
-            var existingUrlItem = targetMirrorItem.Files.FirstOrDefault(url => url.Url.Equals(urlItem.Url));
-
-            if (existingUrlItem == null)
-            {
-                targetMirrorItem.Files.Add(urlItem);
-            }
-            else
-            {
-                _context.Entry(existingUrlItem).CurrentValues.SetValues(urlItem);
-            }
-        }
-
-        foreach (var urlItem in targetMirrorItem.Files.Where(urlItem => !newUrlItems.Any(url => url.Url.Equals(urlItem.Url))))
-        {
-            _context.Remove(urlItem);
-        }
-
-        await _context.SaveChangesAsync();
-
+        await _indexService.GenIndexAsync(id);
         return Ok();
     }
 

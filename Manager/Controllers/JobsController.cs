@@ -5,6 +5,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using AutoMapper;
 using Manager.Models;
+using Manager.Services;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
@@ -19,13 +20,15 @@ public class JobController : ControllerBase
     private readonly ILogger<JobController> _logger;
     private readonly MirrorContext _context;
     private readonly IMapper _mapper;
+    private readonly IIndexService _indexService;
     private static readonly Mutex Mutex = new();
 
-    public JobController(ILogger<JobController> logger, MirrorContext context, IMapper mapper)
+    public JobController(ILogger<JobController> logger, MirrorContext context, IMapper mapper, IIndexService indexService)
     {
         _logger = logger;
         _context = context;
         _mapper = mapper;
+        _indexService = indexService;
     }
 
     /// <summary>
@@ -142,6 +145,12 @@ public class JobController : ControllerBase
         await _context.SaveChangesAsync();
         await transaction.CommitAsync();
         _logger.LogInformation("Updated job {JobId} status to {Status}", jobId, form.Status);
+        
+        // Generate index
+        if (form.Status == JobStatus.Succeeded && relatedMirrorItem.TrigIndex != null)
+        {
+            await _indexService.GenIndexAsync(relatedMirrorItem.TrigIndex);
+        }
         return Ok();
     }
 }
