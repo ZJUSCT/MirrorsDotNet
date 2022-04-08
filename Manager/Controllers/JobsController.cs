@@ -21,10 +21,11 @@ public class JobController : ControllerBase
     private readonly IMapper _mapper;
     private static Mutex _mutex = new();
 
-    public JobController(ILogger<JobController> logger, MirrorContext context)
+    public JobController(ILogger<JobController> logger, MirrorContext context, IMapper mapper)
     {
         _logger = logger;
         _context = context;
+        _mapper = mapper;
     }
 
     /// <summary>
@@ -54,6 +55,14 @@ public class JobController : ControllerBase
         var firstUnDoneJob = _context.SyncJobs.FirstOrDefault(x => x.Status < JobStatus.Succeeded);
         if (firstUnDoneJob != null)
         {
+            var relatedMirrorItem = _context.Mirrors.FirstOrDefault(x => x.Id == firstUnDoneJob.MirrorId);
+            if (relatedMirrorItem == null)
+            {
+                _mutex.ReleaseMutex();
+                return BadRequest("Related mirror item not found");
+            }
+
+            relatedMirrorItem.Status = MirrorStatus.Syncing;
             firstUnDoneJob.WorkerId = workerId;
             firstUnDoneJob.Status = JobStatus.Assigned;
             _context.SaveChanges();
@@ -99,11 +108,33 @@ public class JobController : ControllerBase
         {
             return BadRequest("Worker id does not match");
         }
+        var relatedMirrorItem = await _context.Mirrors.FirstOrDefaultAsync(x => x.Id == job.MirrorId);
+        if (relatedMirrorItem == null)
+        {
+            _mutex.ReleaseMutex();
+            return BadRequest("Related mirror item not found");
+        }
 
         // Do update
         job.Status = form.Status;
         job.UpdateTime = DateTime.Now;
         job.ErrorMessage = form.ErrorMessage;
+        switch (form.Status)
+        {
+            case JobStatus.Running:
+                relatedMirrorItem.UpdateStatus(MirrorStatus.Syncing);
+                break;
+            case JobStatus.Succeeded:
+                relatedMirrorItem.UpdateStatus(MirrorStatus.Succeeded);
+                break;
+            case JobStatus.Failed:
+                relatedMirrorItem.UpdateStatus(MirrorStatus.Failed);
+                break;
+            case JobStatus.Pending:
+            case JobStatus.Assigned:
+            default:
+                throw new ArgumentOutOfRangeException();
+        }
         await _context.SaveChangesAsync();
         return Ok();
     }
