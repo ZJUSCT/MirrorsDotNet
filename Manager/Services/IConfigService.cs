@@ -1,6 +1,8 @@
+using System.Threading.Tasks;
+
 namespace Manager.Services;
 
-public class IConfigService
+public interface IConfigService
 {
-    
+    Task LoadConfigAsync();
 }

@@ -1,11 +1,8 @@
-﻿using System.Linq;
-using System.Threading.Tasks;
+﻿using System.Threading.Tasks;
 using AutoMapper;
 using Hangfire;
 using Manager.Models;
 using Manager.Services;
-using Manager.Utils;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 
@@ -24,14 +21,16 @@ public class WebHookController : ControllerBase
     private readonly IMapper _mapper;
     private readonly IRecurringJobManager _jobManager;
     private readonly IIndexService _indexService;
+    private readonly IConfigService _configService;
 
-    public WebHookController(ILogger<WebHookController> logger, MirrorContext context, IMapper mapper, IRecurringJobManager jobManager, IIndexService indexService)
+    public WebHookController(ILogger<WebHookController> logger, MirrorContext context, IMapper mapper, IRecurringJobManager jobManager, IIndexService indexService, IConfigService configService)
     {
         _logger = logger;
         _context = context;
         _mapper = mapper;
         _jobManager = jobManager;
         _indexService = indexService;
+        _configService = configService;
     }
 
     /// <summary>
@@ -85,6 +84,6 @@ public class WebHookController : ControllerBase
     public async Task ReloadConfigs()
     {
         _logger.LogInformation("Reloading configs");
-        await ConfigService.LoadConfigAsync(_context, _mapper, _logger, _jobManager);
+        await _configService.LoadConfigAsync();
     }
 }

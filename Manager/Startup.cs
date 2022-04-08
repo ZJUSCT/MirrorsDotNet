@@ -1,7 +1,6 @@
 using System;
 using System.Text.Json;
 using System.Text.Json.Serialization;
-using AutoMapper;
 using Hangfire;
 using Hangfire.SQLite;
 using Manager.Models;
@@ -13,7 +12,6 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
-using Microsoft.Extensions.Logging;
 using Microsoft.OpenApi.Models;
 
 namespace Manager;
@@ -51,6 +49,8 @@ public class Startup
             configuration.ServerName = Constants.HangFireServerName;
             configuration.HeartbeatInterval = TimeSpan.FromMinutes(1);
         });
+        services.AddIndexService();
+        services.AddConfigService();
     }
 
     // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
@@ -67,14 +67,12 @@ public class Startup
         {
             if (serviceScope != null)
             {
-                var logger = serviceScope.ServiceProvider.GetRequiredService<ILogger<Startup>>();
+                var configService = serviceScope.ServiceProvider.GetRequiredService<IConfigService>();
                 var mirrorContext = serviceScope.ServiceProvider.GetRequiredService<MirrorContext>();
-                var mapper = serviceScope.ServiceProvider.GetRequiredService<IMapper>();
-                var jobManager = serviceScope.ServiceProvider.GetRequiredService<IRecurringJobManager>();
 
                 mirrorContext.Database.EnsureCreated();
 
-                var task = ConfigService.LoadConfigAsync(mirrorContext, mapper, logger, jobManager);
+                var task = configService.LoadConfigAsync();
                 task.Wait();
             }
         }

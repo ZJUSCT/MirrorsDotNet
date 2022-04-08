@@ -10,17 +10,24 @@ using YamlDotNet.Serialization;
 
 namespace Manager.Services;
 
-public class ConfigService
+public class ConfigService : IConfigService
 {
+    private readonly ILogger<ConfigService> _logger;
+    private readonly MirrorContext _context;
+    private readonly IMapper _mapper;
+    private readonly IRecurringJobManager _jobManager;
+    public ConfigService(MirrorContext context, ILogger<ConfigService> logger, IMapper mapper, IRecurringJobManager jobManager)
+    {
+        _context = context;
+        _logger = logger;
+        _mapper = mapper;
+        _jobManager = jobManager;
+    }
+
     /// <summary>
     /// Load YAML mirror configs 
     /// </summary>
-    /// <param name="mirrorContext">Mirror status context</param>
-    /// <param name="mapper">Auto mapper instance</param>
-    /// <param name="logger">Logger instance</param>
-    /// <param name="jobManager">HungFire RecurringJobManager</param>
-    public static async Task LoadConfigAsync(MirrorContext mirrorContext, IMapper mapper, ILogger logger,
-        IRecurringJobManager jobManager)
+    public async Task LoadConfigAsync()
     {
         var deserializer = new DeserializerBuilder().Build();
 
@@ -34,11 +41,11 @@ public class ConfigService
             var mirrorConfig = deserializer.Deserialize<MirrorConfig>(await File.ReadAllTextAsync(fi.FullName));
             mirrorConfig.Id = Path.GetFileNameWithoutExtension(fi.Name);
 
-            var mirrorItem = await mirrorContext.Mirrors.FindAsync(mirrorConfig.Id);
+            var mirrorItem = await _context.Mirrors.FindAsync(mirrorConfig.Id);
             if (mirrorItem == null)
             {
-                var newMirrorItem = mapper.Map<MirrorItem>(mirrorConfig);
-                await mirrorContext.Mirrors.AddAsync(newMirrorItem);
+                var newMirrorItem = _mapper.Map<MirrorItem>(mirrorConfig);
+                await _context.Mirrors.AddAsync(newMirrorItem);
             }
             else
             {
@@ -46,10 +53,10 @@ public class ConfigService
                 mirrorItem.UpdateFromConfig(mirrorConfig);
             }
 
-            logger.LogInformation("Loaded Mirror Sync Config {ConfigName}", mirrorConfig.Id);
+            _logger.LogInformation("Loaded Mirror Sync Config {ConfigName}", mirrorConfig.Id);
 
             // Add recurring job
-            jobManager.AddOrUpdate<ScheduleService>(
+            _jobManager.AddOrUpdate<ScheduleService>(
                 $"{Constants.HangFireJobPrefix}{mirrorConfig.Id}",
                 x => x.Schedule(mirrorConfig.Id),
                 mirrorConfig.Cron
@@ -61,13 +68,13 @@ public class ConfigService
                 restRecurringJobs.Remove(res);
             }
 
-            logger.LogInformation("Update Mirror Sync Job {JobId}", $"{Constants.HangFireJobPrefix}{mirrorConfig.Id}");
+            _logger.LogInformation("Update Mirror Sync Job {JobId}", $"{Constants.HangFireJobPrefix}{mirrorConfig.Id}");
         }
 
         // Remove rest recurring jobs
         foreach (var job in restRecurringJobs)
         {
-            jobManager.RemoveIfExists(job.Id);
+            _jobManager.RemoveIfExists(job.Id);
         }
 
         // Load index configs
@@ -78,20 +85,20 @@ public class ConfigService
                 deserializer.Deserialize<FileIndexConfig>(await File.ReadAllTextAsync(fi.FullName));
             indexConfig.Id = Path.GetFileNameWithoutExtension(fi.Name);
 
-            var indexConfigItem = await mirrorContext.IndexConfigs.FindAsync(indexConfig.Id);
+            var indexConfigItem = await _context.IndexConfigs.FindAsync(indexConfig.Id);
             if (indexConfigItem == null)
             {
-                await mirrorContext.IndexConfigs.AddAsync(indexConfig);
+                await _context.IndexConfigs.AddAsync(indexConfig);
             }
             else
             {
                 // Update if existed
-                mirrorContext.Entry(indexConfigItem).CurrentValues.SetValues(indexConfig);
+                _context.Entry(indexConfigItem).CurrentValues.SetValues(indexConfig);
             }
 
-            logger.LogInformation("Loaded File Index Config {ConfigName}", indexConfig.Id);
+            _logger.LogInformation("Loaded File Index Config {ConfigName}", indexConfig.Id);
         }
 
-        await mirrorContext.SaveChangesAsync();
+        await _context.SaveChangesAsync();
     }
 }
