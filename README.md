@@ -10,7 +10,7 @@ Mirrors.NET is a simple, fast, and reliable mirror management service build with
 
 #### API
 
-
+TBD
 
 #### Configs
 
@@ -26,3 +26,4 @@ Configs
 
 ### Worker
 
+Written in Go, please refer to [xxx](xxx)
