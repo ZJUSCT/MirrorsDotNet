@@ -32,7 +32,6 @@ public class Startup
     {
         services.AddDbContext<MirrorContext>(opt => opt.UseSqlite(Utils.Constants.MirrorSqliteConnectionString));
         services.AddAutoMapper(typeof(MapperProfile));
-        services.AddDistributedMemoryCache();
         services.AddControllers()
             .AddJsonOptions(options =>
             {

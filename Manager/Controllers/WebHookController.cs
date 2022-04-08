@@ -7,7 +7,6 @@ using Manager.Services;
 using Manager.Utils;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.Extensions.Caching.Distributed;
 using Microsoft.Extensions.Logging;
 
 namespace Manager.Controllers;
@@ -23,15 +22,13 @@ public class WebHookController : ControllerBase
     private readonly ILogger<WebHookController> _logger;
     private readonly MirrorContext _context;
     private readonly IMapper _mapper;
-    private readonly IDistributedCache _cache;
     private readonly IRecurringJobManager _jobManager;
 
-    public WebHookController(ILogger<WebHookController> logger, MirrorContext context, IMapper mapper, IDistributedCache cache, IRecurringJobManager jobManager)
+    public WebHookController(ILogger<WebHookController> logger, MirrorContext context, IMapper mapper, IRecurringJobManager jobManager)
     {
         _logger = logger;
         _context = context;
         _mapper = mapper;
-        _cache = cache;
         _jobManager = jobManager;
     }
 
@@ -64,9 +61,6 @@ public class WebHookController : ControllerBase
             return NotFound();
         }
         mirrorConfig.UpdateStatus(reportStatus);
-
-        await _cache.RemoveAsync(Constants.MirrorAllCacheKey);
-        await _cache.RemoveAsync(Constants.MirrorItemCacheKeyPrefix + id);
 
         return Ok();
     }
@@ -120,8 +114,6 @@ public class WebHookController : ControllerBase
         }
 
         await _context.SaveChangesAsync();
-        await _cache.RemoveAsync(Constants.MirrorAllCacheKey);
-        await _cache.RemoveAsync(Constants.MirrorItemCacheKeyPrefix + registerTargetId);
 
         return Ok();
     }
@@ -134,6 +126,5 @@ public class WebHookController : ControllerBase
     {
         _logger.LogInformation("Reloading configs");
         await ConfigService.LoadConfigAsync(_context, _mapper, _logger, _jobManager);
-        await _cache.RemoveAsync(Utils.Constants.MirrorAllCacheKey);
     }
 }

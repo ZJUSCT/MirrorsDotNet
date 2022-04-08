@@ -52,6 +52,7 @@ public class JobController : ControllerBase
         }
 
         _mutex.WaitOne();
+        using var transaction = _context.Database.BeginTransaction();
         var firstUnDoneJob = _context.SyncJobs.FirstOrDefault(x => x.Status < JobStatus.Succeeded);
         if (firstUnDoneJob != null)
         {
@@ -66,7 +67,8 @@ public class JobController : ControllerBase
             firstUnDoneJob.WorkerId = workerId;
             firstUnDoneJob.Status = JobStatus.Assigned;
             _context.SaveChanges();
-            _logger.LogInformation("Job {JobId} assigned to worker {WorkerId}", firstUnDoneJob.Id, workerId);
+            transaction.Commit();
+            _logger.LogInformation("Job {JobId} for mirror {MirrorId} assigned to worker {WorkerId}", firstUnDoneJob.Id, firstUnDoneJob.MirrorId, workerId);
             _mutex.ReleaseMutex();
             var jobDto = _mapper.Map<MirrorSyncJobDto>(firstUnDoneJob);
             return Ok(jobDto);
@@ -116,6 +118,7 @@ public class JobController : ControllerBase
         }
 
         // Do update
+        await using var transaction = await _context.Database.BeginTransactionAsync();
         job.Status = form.Status;
         job.UpdateTime = DateTime.Now;
         job.ErrorMessage = form.ErrorMessage;
@@ -136,6 +139,7 @@ public class JobController : ControllerBase
                 throw new ArgumentOutOfRangeException();
         }
         await _context.SaveChangesAsync();
+        await transaction.CommitAsync();
         return Ok();
     }
 }

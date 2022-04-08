@@ -45,28 +45,32 @@ public class ScheduleService
         }
 
         // Create new job
-        var newJobItem = new MirrorSyncJob
+        await using var transaction = await context.Database.BeginTransactionAsync();
         {
-            MirrorId = mirrorId,
-            ProviderImage = mirrorItem.ProviderImage,
-            Location = mirrorItem.Location,
-            Upstream = mirrorItem.Upstream,
-            ExtraArgs = mirrorItem.ExtraArgs,
-            ScheduleTime = DateTime.Now,
-            UpdateTime = DateTime.Now,
-            Status = JobStatus.Pending
-        };
-        var job = JobStorage.Current.GetConnection().GetRecurringJobs().Single(x => x.Id == $"{Constants.HangFireJobPrefix}{mirrorId}");
-        var relatedMirror = await context.Mirrors.FindAsync(mirrorId);
-        if (relatedMirror == null)
-        {
-            logger.LogError("Creating a job for a non-existing mirror {Id}", mirrorId);
-            return;
-        }
+            var newJobItem = new MirrorSyncJob
+            {
+                MirrorId = mirrorId,
+                ProviderImage = mirrorItem.ProviderImage,
+                Location = mirrorItem.Location,
+                Upstream = mirrorItem.Upstream,
+                ExtraArgs = mirrorItem.ExtraArgs,
+                ScheduleTime = DateTime.Now,
+                UpdateTime = DateTime.Now,
+                Status = JobStatus.Pending
+            };
+            var job = JobStorage.Current.GetConnection().GetRecurringJobs().Single(x => x.Id == $"{Constants.HangFireJobPrefix}{mirrorId}");
+            var relatedMirror = await context.Mirrors.FindAsync(mirrorId);
+            if (relatedMirror == null)
+            {
+                logger.LogError("Creating a job for a non-existing mirror {Id}", mirrorId);
+                return;
+            }
 
-        relatedMirror.NextScheduled = job.NextExecution ?? DateTime.MinValue;
-        await context.SyncJobs.AddAsync(newJobItem);
-        await context.SaveChangesAsync();
+            relatedMirror.NextScheduled = job.NextExecution ?? DateTime.MinValue;
+            await context.SyncJobs.AddAsync(newJobItem);
+            await context.SaveChangesAsync();
+            await transaction.CommitAsync();
+        }
         logger.LogInformation("{Id} is scheduled", mirrorItem.Id);
     }
 }
