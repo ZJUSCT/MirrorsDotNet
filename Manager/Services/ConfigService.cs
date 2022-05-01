@@ -1,4 +1,6 @@
-﻿using System.IO;
+﻿using System.Collections.Generic;
+using System.IO;
+using System.Linq;
 using System.Threading.Tasks;
 using AutoMapper;
 using Hangfire;
@@ -36,15 +38,24 @@ public class ConfigService : IConfigService
 
         // Load sync configs
         var syncDirInfo = new DirectoryInfo(Constants.SyncConfigPath);
+        var newSyncConfigIds = new List<string>();
         foreach (var fi in syncDirInfo.GetFiles("*.yml", SearchOption.AllDirectories))
         {
             var mirrorConfig = deserializer.Deserialize<MirrorConfig>(await File.ReadAllTextAsync(fi.FullName));
             mirrorConfig.Id = Path.GetFileNameWithoutExtension(fi.Name);
+            newSyncConfigIds.Add(mirrorConfig.Id);
 
             var mirrorItem = await _context.Mirrors.FindAsync(mirrorConfig.Id);
             if (mirrorItem == null)
             {
                 var newMirrorItem = _mapper.Map<MirrorItem>(mirrorConfig);
+                newMirrorItem.Status = mirrorConfig.Type switch
+                {
+                    MirrorType.ProxyCache => MirrorStatus.Cached,
+                    MirrorType.ReverseProxy => MirrorStatus.ReverseProxied,
+                    MirrorType.Paused => MirrorStatus.Paused,
+                    _ => newMirrorItem.Status
+                };
                 await _context.Mirrors.AddAsync(newMirrorItem);
             }
             else
@@ -74,19 +85,29 @@ public class ConfigService : IConfigService
             _logger.LogInformation("Update Mirror Sync Job {JobId}", $"{Constants.HangFireJobPrefix}{mirrorConfig.Id}");
         }
 
+        // Remove mirror if not existed in config
+        foreach (var mirror in _context.Mirrors.Where(mirror => !newSyncConfigIds.Contains(mirror.Id)))
+        {
+            _context.Mirrors.Remove(mirror);
+            _logger.LogInformation("Removed Mirror {MirrorId}", mirror.Id);
+        }
+
         // Remove rest recurring jobs
         foreach (var job in restRecurringJobs)
         {
             _jobManager.RemoveIfExists(job.Id);
+            _logger.LogInformation("Removed Recurring Job {JobId}", job.Id);
         }
 
         // Load index configs
         var indexDirInfo = new DirectoryInfo(Constants.IndexConfigPath);
+        var newIndexConfigIds = new List<string>();
         foreach (var fi in indexDirInfo.GetFiles("*.yml", SearchOption.AllDirectories))
         {
             var indexConfig =
                 deserializer.Deserialize<FileIndexConfig>(await File.ReadAllTextAsync(fi.FullName));
             indexConfig.Id = Path.GetFileNameWithoutExtension(fi.Name);
+            newIndexConfigIds.Add(indexConfig.Id);
 
             var indexConfigItem = await _context.IndexConfigs.FindAsync(indexConfig.Id);
             if (indexConfigItem == null)
@@ -100,6 +121,13 @@ public class ConfigService : IConfigService
             }
 
             _logger.LogInformation("Loaded File Index Config {ConfigName}", indexConfig.Id);
+        }
+
+        // Remove index if not existed in config
+        foreach (var index in _context.IndexConfigs.Where(index => !newIndexConfigIds.Contains(index.Id)))
+        {
+            _context.IndexConfigs.Remove(index);
+            _logger.LogInformation("Removed File Index {IndexId}", index.Id);
         }
 
         await _context.SaveChangesAsync();
