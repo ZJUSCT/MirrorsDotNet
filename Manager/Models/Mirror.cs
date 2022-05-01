@@ -190,6 +190,7 @@ public class MirrorSyncJob
     public DateTime ScheduleTime { get; set; }
     public DateTime UpdateTime { get; set; }
     public JobStatus Status { get; set; }
+    public string ContainerId { get; set; }
     public string ErrorMessage { get; set; }
 }
 
@@ -208,5 +209,6 @@ public class SyncJobUpdateForm
     public string WorkerId { get; set; }
     public int JobId { get; set; }
     public JobStatus Status { get; set; }
+    public string ContainerId { get; set; }
     public string ErrorMessage { get; set; }
 }

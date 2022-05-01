@@ -87,7 +87,7 @@ public class JobController : ControllerBase
     /// <param name="jobId">job id</param>
     /// <param name="form">{WorkerId, JobId, Status, ErrorMessage}</param>
     /// <returns></returns>
-    [HttpPost("{jobId:int}")]
+    [HttpPut("{jobId:int}")]
     public async Task<IActionResult> UpdateJobStatus([FromRoute] int jobId, [FromForm] SyncJobUpdateForm form)
     {
         // Various checks
@@ -124,6 +124,7 @@ public class JobController : ControllerBase
         // Do update
         await using var transaction = await _context.Database.BeginTransactionAsync();
         job.Status = form.Status;
+        job.ContainerId = form.ContainerId;
         job.UpdateTime = DateTime.Now;
         job.ErrorMessage = form.ErrorMessage;
         switch (form.Status)
@@ -145,7 +146,7 @@ public class JobController : ControllerBase
         await _context.SaveChangesAsync();
         await transaction.CommitAsync();
         _logger.LogInformation("Updated job {JobId} status to {Status}", jobId, form.Status);
-        
+
         // Generate index
         if (form.Status == JobStatus.Succeeded && relatedMirrorItem.TrigIndex != null)
         {
