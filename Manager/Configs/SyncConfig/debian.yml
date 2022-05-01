@@ -6,12 +6,21 @@ Description:
   en: Debian Packages
   zh: Debian 发行版包
 Url: /debian
-Location: /data/root/debian
+Location: /Data/debian
 HelpUrl: /help/debian
 Type: Normal
 
 # Sync Config
-ProviderImage: xxx/xxxx
 Upstream: 'https://mirrors.bfsu.edu.cn/debian'
-ExtraArgs: -6
 Cron: '*/1 * * * *'
+Timeout: '5h'
+Container:
+  Image: 'workload:b'
+  Pull: 'never'
+  Volumes:
+    - Source: '/tmp/workertest'
+      Target: '/workdir'
+  Command: '/app/workload --some-cli-flag'
+  Environments:
+    - Name: 'WORKLOAD_CNT'
+      Value: '100'

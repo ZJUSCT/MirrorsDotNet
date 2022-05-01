@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.Runtime.Serialization;
 using System.Text.Json.Serialization;
+using Microsoft.EntityFrameworkCore;
 
 namespace Manager.Models;
 
@@ -59,6 +60,34 @@ public class UrlItem
 }
 
 /// <summary>
+/// Container Volume
+/// </summary>
+public class Volume
+{
+    public string Source { get; set; }
+    public string Target { get; set; }
+}
+
+/// <summary>
+/// Container Environment Variable
+/// </summary>
+public class Environment
+{
+    public string Name { get; set; }
+    public string Value { get; set; }
+}
+
+[Owned]
+public class Container
+{
+    public string Image { get; set; }
+    public string Pull { get; set; }
+    public List<Volume> Volumes { get; set; }
+    public string Command { get; set; }
+    public List<Environment> Environments { get; set; }
+}
+
+/// <summary>
 /// Mirror Sync Status Class
 /// </summary>
 public class MirrorItem
@@ -73,10 +102,10 @@ public class MirrorItem
 
     // Sync
     public MirrorType Type { get; set; } = MirrorType.Normal;
-    public string ProviderImage { get; set; }
     public string Upstream { get; set; }
-    public string ExtraArgs { get; set; }
     public string Cron { get; set; }
+    public string Timeout { get; set; }
+    public Container Container { get; set; }
 
     // Index
     public string TrigIndex { get; set; }
@@ -96,10 +125,10 @@ public class MirrorItem
         Location = config.Location;
         HelpUrl = config.HelpUrl;
         Type = config.Type;
-        ProviderImage = config.ProviderImage;
         Upstream = config.Upstream;
-        ExtraArgs = config.ExtraArgs;
         Cron = config.Cron;
+        Timeout = config.Timeout;
+        Container = config.Container;
         TrigIndex = config.TrigIndex;
 
         // Special types that affect the status
@@ -138,10 +167,10 @@ public class MirrorConfig
 
     // Sync
     public MirrorType Type { get; set; } = MirrorType.Normal;
-    public string ProviderImage { get; set; }
     public string Upstream { get; set; }
-    public string ExtraArgs { get; set; }
     public string Cron { get; set; }
+    public string Timeout { get; set; }
+    public Container Container { get; set; }
 
     // Index
     public string TrigIndex { get; set; }
@@ -156,7 +185,7 @@ public class MirrorItemDto
     public string Url { get; set; }
 
     public I18N.StringBase Name { get; set; }
-    [JsonPropertyName("desc")] public I18N.StringBase Description { get; set; }
+    public I18N.StringBase Description { get; set; }
 
     public MirrorStatus Status { get; set; }
     public DateTime LastUpdated { get; set; }
@@ -181,10 +210,8 @@ public class MirrorSyncJob
 {
     [Key] public int Id { get; set; }
     public string MirrorId { get; set; }
-    public string ProviderImage { get; set; }
-    public string Location { get; set; }
-    public string Upstream { get; set; }
-    public string ExtraArgs { get; set; }
+    public string Timeout { get; set; }
+    public Container Container { get; set; }
 
     public string WorkerId { get; set; }
     public DateTime ScheduleTime { get; set; }
@@ -197,11 +224,8 @@ public class MirrorSyncJob
 public class MirrorSyncJobDto
 {
     [Key] public int Id { get; set; }
-    public string MirrorId { get; set; }
-    public string ProviderImage { get; set; }
-    public string Location { get; set; }
-    public string Upstream { get; set; }
-    public string ExtraArgs { get; set; }
+    public string Timeout { get; set; }
+    public Container Container { get; set; }
 }
 
 public class SyncJobUpdateForm

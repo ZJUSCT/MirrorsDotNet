@@ -56,16 +56,19 @@ public class ConfigService : IConfigService
             _logger.LogInformation("Loaded Mirror Sync Config {ConfigName}", mirrorConfig.Id);
 
             // Add recurring job
-            _jobManager.AddOrUpdate<ScheduleService>(
-                $"{Constants.HangFireJobPrefix}{mirrorConfig.Id}",
-                x => x.Schedule(mirrorConfig.Id),
-                mirrorConfig.Cron
-            );
-            var res = restRecurringJobs.Find(x => x.Id == $"{Constants.HangFireJobPrefix}{mirrorConfig.Id}");
-            if (res != null)
+            if (mirrorConfig.Type == MirrorType.Normal)
             {
-                // Remove from rest recurring job list
-                restRecurringJobs.Remove(res);
+                _jobManager.AddOrUpdate<ScheduleService>(
+                    $"{Constants.HangFireJobPrefix}{mirrorConfig.Id}",
+                    x => x.Schedule(mirrorConfig.Id),
+                    mirrorConfig.Cron
+                );
+                var res = restRecurringJobs.Find(x => x.Id == $"{Constants.HangFireJobPrefix}{mirrorConfig.Id}");
+                if (res != null)
+                {
+                    // Remove from rest recurring job list
+                    restRecurringJobs.Remove(res);
+                }
             }
 
             _logger.LogInformation("Update Mirror Sync Job {JobId}", $"{Constants.HangFireJobPrefix}{mirrorConfig.Id}");

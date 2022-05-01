@@ -50,10 +50,8 @@ public class ScheduleService
             var newJobItem = new MirrorSyncJob
             {
                 MirrorId = mirrorId,
-                ProviderImage = mirrorItem.ProviderImage,
-                Location = mirrorItem.Location,
-                Upstream = mirrorItem.Upstream,
-                ExtraArgs = mirrorItem.ExtraArgs,
+                Timeout = mirrorItem.Timeout,
+                Container = mirrorItem.Container,
                 ScheduleTime = DateTime.Now,
                 UpdateTime = DateTime.Now,
                 Status = JobStatus.Pending
