@@ -8,10 +8,19 @@ Description:
 Url: /ubuntu
 Location: /data/root/ubuntu
 HelpUrl: /help/ubuntu
-Type: ProxyCache
+Type: Normal
 
 # Sync Config
-#ProviderImage: xxx/xxxx
-#Upstream: 'https://mirrors.bfsu.edu.cn/ubuntu'
-#ExtraArgs: -6
-#Cron: '*/3 * * * *'
+Upstream: 'https://mirrors.bfsu.edu.cn/debian'
+Cron: '*/1 * * * *'
+Timeout: '5h'
+Container:
+  Image: 'workload:b'
+  Pull: 'never'
+  Volumes:
+    - Source: '/tmp/workertest'
+      Target: '/workdir'
+  Command: '/app/workload --some-cli-flag'
+  Environments:
+    - Name: 'WORKLOAD_RET'
+      Value: '233'
