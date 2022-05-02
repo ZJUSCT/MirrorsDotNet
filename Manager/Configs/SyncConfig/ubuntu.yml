@@ -20,7 +20,8 @@ Container:
   Volumes:
     - Source: '/tmp/workertest'
       Target: '/workdir'
-  Command: '/app/workload --some-cli-flag'
+  Command:
+    - '/app/workload'
+    - '--some-cli-flag'
   Environments:
-    - Name: 'WORKLOAD_RET'
-      Value: '233'
+    - 'WORKLOAD_RET=233'

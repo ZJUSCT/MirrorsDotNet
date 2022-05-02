@@ -69,22 +69,16 @@ public class Volume
 }
 
 /// <summary>
-/// Container Environment Variable
+/// Docker Container Specification
 /// </summary>
-public class Environment
-{
-    public string Name { get; set; }
-    public string Value { get; set; }
-}
-
 [Owned]
 public class Container
 {
     public string Image { get; set; }
     public string Pull { get; set; }
     public List<Volume> Volumes { get; set; }
-    public string Command { get; set; }
-    public List<Environment> Environments { get; set; }
+    public List<string> Command { get; set; }
+    public List<string> Environments { get; set; }
 }
 
 /// <summary>
