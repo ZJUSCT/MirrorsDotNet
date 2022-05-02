@@ -54,7 +54,7 @@ public class ConfigService : IConfigService
                     MirrorType.ProxyCache => MirrorStatus.Cached,
                     MirrorType.ReverseProxy => MirrorStatus.ReverseProxied,
                     MirrorType.Paused => MirrorStatus.Paused,
-                    _ => newMirrorItem.Status
+                    _ => MirrorStatus.Unknown
                 };
                 await _context.Mirrors.AddAsync(newMirrorItem);
             }
