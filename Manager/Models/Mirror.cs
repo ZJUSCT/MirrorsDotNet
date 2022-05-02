@@ -137,7 +137,14 @@ public class MirrorItem
             MirrorType.ProxyCache => MirrorStatus.Cached,
             MirrorType.ReverseProxy => MirrorStatus.ReverseProxied,
             MirrorType.Paused => MirrorStatus.Paused,
-            _ => Status
+            MirrorType.Normal => Status switch
+            {
+                MirrorStatus.Cached => MirrorStatus.Unknown,
+                MirrorStatus.ReverseProxied => MirrorStatus.Unknown,
+                MirrorStatus.Paused => MirrorStatus.Unknown,
+                _ => Status
+            },
+            _ => MirrorStatus.Unknown
         };
     }
 
