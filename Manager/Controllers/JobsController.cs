@@ -85,21 +85,21 @@ public class JobController : ControllerBase
     /// Update job status
     /// </summary>
     /// <param name="jobId">job id</param>
-    /// <param name="form">{WorkerId, JobId, Status, ErrorMessage}</param>
+    /// <param name="body">{WorkerId, JobId, Status, ErrorMessage}</param>
     /// <returns></returns>
     [HttpPut("{jobId:int}")]
-    public async Task<IActionResult> UpdateJobStatus([FromRoute] int jobId, [FromForm] SyncJobUpdateForm form)
+    public async Task<IActionResult> UpdateJobStatus([FromRoute] int jobId, [FromBody] SyncJobUpdateBody body)
     {
         // Various checks
         if (jobId <= 0)
         {
             return BadRequest("Job id is required");
         }
-        if (form == null)
+        if (body == null)
         {
             return BadRequest("Job status is required");
         }
-        if (form.JobId != jobId)
+        if (body.JobId != jobId)
         {
             return BadRequest("Job id is not match");
         }
@@ -110,7 +110,7 @@ public class JobController : ControllerBase
         {
             return NotFound();
         }
-        if (job.WorkerId != form.WorkerId)
+        if (job.WorkerId != body.WorkerId)
         {
             return BadRequest("Worker id does not match");
         }
@@ -123,11 +123,11 @@ public class JobController : ControllerBase
 
         // Do update
         await using var transaction = await _context.Database.BeginTransactionAsync();
-        job.Status = form.Status;
-        job.ContainerId = form.ContainerId;
+        job.Status = body.Status;
+        job.ContainerId = body.ContainerId;
         job.UpdateTime = DateTime.Now;
-        job.ErrorMessage = form.ErrorMessage;
-        switch (form.Status)
+        job.ErrorMessage = body.ErrorMessage;
+        switch (body.Status)
         {
             case JobStatus.Running:
                 relatedMirrorItem.UpdateStatus(MirrorStatus.Syncing);
@@ -145,13 +145,13 @@ public class JobController : ControllerBase
         }
         await _context.SaveChangesAsync();
         await transaction.CommitAsync();
-        _logger.LogInformation("Updated job {JobId} status to {Status}", jobId, form.Status);
+        _logger.LogInformation("Updated job {JobId} status to {Status}", jobId, body.Status);
 
         // Generate index
-        if (form.Status == JobStatus.Succeeded && relatedMirrorItem.TrigIndex != null)
+        if (body.Status == JobStatus.Succeeded && relatedMirrorItem.TrigIndex != null)
         {
             await _indexService.GenIndexAsync(relatedMirrorItem.TrigIndex);
         }
-        return Ok();
+        return NoContent();
     }
 }

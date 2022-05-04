@@ -229,7 +229,7 @@ public class MirrorSyncJobDto
     public Container Container { get; set; }
 }
 
-public class SyncJobUpdateForm
+public class SyncJobUpdateBody
 {
     public string WorkerId { get; set; }
     public int JobId { get; set; }
