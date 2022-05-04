@@ -78,7 +78,7 @@ public class JobController : ControllerBase
         }
         Mutex.ReleaseMutex();
         _logger.LogInformation("Worker {WorkerId} requested, but no job to be assigned", workerId);
-        return NotFound();
+        return NoContent();
     }
 
     /// <summary>
