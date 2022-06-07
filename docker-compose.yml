@@ -9,6 +9,6 @@ services:
     environment:
       - TZ=Aisa/Shanghai
     volumes:
-      - /data/mirrors/config:/app/Configs
-      - /data/mirrors/root:/app/Data
-      - /data/mirrors/status:/app/Status
+      - /data/conf/mirrorsdotnet/config:/app/Configs
+      - /data/storage:/app/Data
+      - /data/conf/mirrorsdotnet/status:/app/Status
