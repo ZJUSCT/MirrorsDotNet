@@ -25,3 +25,4 @@ Container:
     - '--some-cli-flag'
   Environments:
     - 'WORKLOAD_RET=233'
+  Name: 'job-ubuntu-sync'

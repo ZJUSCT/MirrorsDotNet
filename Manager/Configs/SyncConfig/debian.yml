@@ -25,3 +25,4 @@ Container:
     - '--some-cli-flag'
   Environments:
     - 'WORKLOAD_CNT=100'
+  Name: 'job-debian-sync'

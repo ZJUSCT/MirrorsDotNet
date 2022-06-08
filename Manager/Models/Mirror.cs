@@ -79,6 +79,7 @@ public class Container
     public List<Volume> Volumes { get; set; }
     public List<string> Command { get; set; }
     public List<string> Environments { get; set; }
+    public string Name { get; set; }
 }
 
 /// <summary>

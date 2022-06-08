@@ -9,11 +9,5 @@ Url: /debian-cd
 Location: /data/root/debian-cd
 Type: ProxyCache
 
-# Sync Config
-#ProviderImage: xxx/xxxx
-#Upstream: 'https://mirrors.bfsu.edu.cn/debian-cd'
-#ExtraArgs: -6
-#Cron: '*/3 * * * *'
-
 # Index Job
 TrigIndex: debian-iso  # will trig index job after sync success
