@@ -188,6 +188,8 @@ public class MirrorItemDto
 
     public I18N.StringBase Name { get; set; }
     [JsonPropertyName("desc")] public I18N.StringBase Description { get; set; }
+    public string HelpUrl { get; set; }
+    public string Upstream { get; set; }
 
     public MirrorStatus Status { get; set; }
     public DateTime LastUpdated { get; set; }
