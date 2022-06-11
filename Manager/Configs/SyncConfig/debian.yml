@@ -20,6 +20,9 @@ Container:
   Volumes:
     - Source: '/tmp/workertest'
       Target: '/workdir'
+    - Source: '/tmp/workertest/ro'
+      Target: '/workdir'
+      ReadOnly: true
   Command: 
     - '/app/workload'
     - '--some-cli-flag'

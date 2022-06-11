@@ -67,6 +67,7 @@ public class Volume
 {
     public string Source { get; set; }
     public string Target { get; set; }
+    [JsonPropertyName("ro")] public bool ReadOnly { get; set; }
 }
 
 /// <summary>
