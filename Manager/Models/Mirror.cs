@@ -28,6 +28,7 @@ public enum MirrorType
 
 public enum FileType
 {
+    [EnumMember(Value = "none")] None,
     [EnumMember(Value = "os")] Os,
     [EnumMember(Value = "app")] App,
     [EnumMember(Value = "font")] Font
@@ -94,6 +95,7 @@ public class MirrorItem
     public string Url { get; set; }
     public string Location { get; set; }
     public string HelpUrl { get; set; }
+    public string Size { get; set; } = "1G";
 
     // Sync
     public MirrorType Type { get; set; } = MirrorType.Normal;
@@ -103,6 +105,7 @@ public class MirrorItem
     public Container Container { get; set; }
 
     // Index
+    public FileType IndexedFilesType { get; set; }
     public string TrigIndex { get; set; }
     public List<UrlItem> Files { get; set; }
 
@@ -190,12 +193,14 @@ public class MirrorItemDto
     [JsonPropertyName("desc")] public I18N.StringBase Description { get; set; }
     public string HelpUrl { get; set; }
     public string Upstream { get; set; }
+    public string Size { get; set; }
 
     public MirrorStatus Status { get; set; }
     public DateTime LastUpdated { get; set; }
     public DateTime NextScheduled { get; set; }
     public DateTime LastSuccess { get; set; }
 
+    [JsonPropertyName("type")] public FileType IndexedFilesType { get; set; }
     public List<UrlItem> Files { get; set; }
 }
 

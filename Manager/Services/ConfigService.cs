@@ -121,6 +121,19 @@ public class ConfigService : IConfigService
             }
 
             _logger.LogInformation("Loaded File Index Config {ConfigName}", indexConfig.Id);
+            
+            var registerTargetId = indexConfig.RegisterId;
+            var targetMirrorItem = await _context.Mirrors.FindAsync(registerTargetId);
+
+            if (targetMirrorItem == null)
+            {
+                _logger.LogError("Target mirror {Id} not found", registerTargetId);
+            }
+            else
+            {
+                targetMirrorItem.IndexedFilesType = indexConfig.Category;
+            }
+            _logger.LogInformation("Registered Mirror {MirrorId} Indexed Files Type {Type}", registerTargetId, indexConfig.Category);
         }
 
         // Remove index if not existed in config
