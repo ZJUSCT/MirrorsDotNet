@@ -134,6 +134,7 @@ public class JobController : ControllerBase
                 break;
             case JobStatus.Succeeded:
                 relatedMirrorItem.UpdateStatus(MirrorStatus.Succeeded);
+                relatedMirrorItem.Size = body.FileSize;
                 break;
             case JobStatus.Failed:
                 relatedMirrorItem.UpdateStatus(MirrorStatus.Failed);
@@ -143,6 +144,7 @@ public class JobController : ControllerBase
             default:
                 throw new ArgumentOutOfRangeException();
         }
+
         await _context.SaveChangesAsync();
         await transaction.CommitAsync();
         _logger.LogInformation("Updated job {JobId} status to {Status}", jobId, body.Status);

@@ -96,7 +96,7 @@ public class MirrorItem
     public string Url { get; set; }
     public string Location { get; set; }
     public string HelpUrl { get; set; }
-    public string Size { get; set; } = "1G";
+    public string Size { get; set; } = "N/A";
 
     // Sync
     public MirrorType Type { get; set; } = MirrorType.Normal;
@@ -245,4 +245,5 @@ public class SyncJobUpdateBody
     public JobStatus Status { get; set; }
     public string ContainerId { get; set; }
     public string ErrorMessage { get; set; }
+    public string FileSize { get; set; }
 }
