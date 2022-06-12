@@ -16,6 +16,11 @@ public class MirrorContext : DbContext
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         modelBuilder.Entity<MirrorSyncJob>()
+            .HasIndex(b => b.Id);
+        modelBuilder.Entity<MirrorSyncJob>()
+            .HasIndex(b => b.Status)
+            .HasFilter("[Status] = 0");
+        modelBuilder.Entity<MirrorSyncJob>()
             .HasIndex(b => b.Status)
             .HasFilter("[Status] < 3");
         modelBuilder.Entity<MirrorItem>().Property(p => p.Name).HasConversion(

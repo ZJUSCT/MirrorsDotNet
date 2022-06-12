@@ -12,7 +12,6 @@ using Microsoft.Extensions.Logging;
 
 namespace Manager.Controllers;
 
-
 [ApiController]
 [Route("jobs")]
 public class JobController : ControllerBase
@@ -23,7 +22,8 @@ public class JobController : ControllerBase
     private readonly IIndexService _indexService;
     private static readonly Mutex Mutex = new();
 
-    public JobController(ILogger<JobController> logger, MirrorContext context, IMapper mapper, IIndexService indexService)
+    public JobController(ILogger<JobController> logger, MirrorContext context, IMapper mapper,
+        IIndexService indexService)
     {
         _logger = logger;
         _context = context;
@@ -34,11 +34,18 @@ public class JobController : ControllerBase
     /// <summary>
     /// Get all jobs
     /// </summary>
+    /// <param name="showDone">show finished jobs</param>
     /// <returns>list of all jobs</returns>
+    /// <response code="200">Returns list of jobs</response>
     [HttpGet]
-    public async Task<List<MirrorSyncJob>> GetAllJobs()
+    public async Task<List<MirrorSyncJob>> GetAllJobs([FromQuery] bool showDone = false)
     {
-        return await _context.SyncJobs.ToListAsync();
+        if (showDone)
+        {
+            return await _context.SyncJobs.ToListAsync();
+        }
+
+        return await _context.SyncJobs.Where(j => j.Status < JobStatus.Succeeded).ToListAsync();
     }
 
     /// <summary>
@@ -46,6 +53,8 @@ public class JobController : ControllerBase
     /// </summary>
     /// <param name="workerId">worker id</param>
     /// <returns>job information</returns>
+    /// <response code="200">Returns a new job</response>
+    /// <response code="204">No new job</response>
     [HttpPost("request")]
     public IActionResult GetOneJob([FromForm(Name = "worker_id")] string workerId)
     {
@@ -56,7 +65,8 @@ public class JobController : ControllerBase
 
         Mutex.WaitOne();
         using var transaction = _context.Database.BeginTransaction();
-        var firstUnDoneJob = _context.SyncJobs.FirstOrDefault(x => x.Status < JobStatus.Succeeded);
+        var firstUnDoneJob =
+            _context.SyncJobs.FirstOrDefault(x => x.Status == JobStatus.Pending);
         if (firstUnDoneJob != null)
         {
             var relatedMirrorItem = _context.Mirrors.FirstOrDefault(x => x.Id == firstUnDoneJob.MirrorId);
@@ -71,11 +81,13 @@ public class JobController : ControllerBase
             firstUnDoneJob.Status = JobStatus.Assigned;
             _context.SaveChanges();
             transaction.Commit();
-            _logger.LogInformation("Job {JobId} for mirror {MirrorId} assigned to worker {WorkerId}", firstUnDoneJob.Id, firstUnDoneJob.MirrorId, workerId);
+            _logger.LogInformation("Job {JobId} for mirror {MirrorId} assigned to worker {WorkerId}", firstUnDoneJob.Id,
+                firstUnDoneJob.MirrorId, workerId);
             Mutex.ReleaseMutex();
             var jobDto = _mapper.Map<MirrorSyncJobDto>(firstUnDoneJob);
             return Ok(jobDto);
         }
+
         Mutex.ReleaseMutex();
         _logger.LogInformation("Worker {WorkerId} requested, but no job to be assigned", workerId);
         return NoContent();
@@ -86,7 +98,12 @@ public class JobController : ControllerBase
     /// </summary>
     /// <param name="jobId">job id</param>
     /// <param name="body">{WorkerId, JobId, Status, ErrorMessage}</param>
-    /// <returns></returns>
+    /// <response code="204">Update Success</response>
+    /// <response code="400">Bad Request: format error</response>
+    /// <response code="404">Job not found</response>
+    [ProducesResponseType(204)]
+    [ProducesResponseType(400)]
+    [ProducesResponseType(404)]
     [HttpPut("{jobId:int}")]
     public async Task<IActionResult> UpdateJobStatus([FromRoute] int jobId, [FromBody] SyncJobUpdateBody body)
     {
@@ -95,10 +112,12 @@ public class JobController : ControllerBase
         {
             return BadRequest("Job id is required");
         }
+
         if (body == null)
         {
             return BadRequest("Job status is required");
         }
+
         if (body.JobId != jobId)
         {
             return BadRequest("Job id is not match");
@@ -110,10 +129,12 @@ public class JobController : ControllerBase
         {
             return NotFound();
         }
+
         if (job.WorkerId != body.WorkerId)
         {
             return BadRequest("Worker id does not match");
         }
+
         var relatedMirrorItem = await _context.Mirrors.FirstOrDefaultAsync(x => x.Id == job.MirrorId);
         if (relatedMirrorItem == null)
         {
@@ -154,6 +175,7 @@ public class JobController : ControllerBase
         {
             await _indexService.GenIndexAsync(relatedMirrorItem.TrigIndex);
         }
+
         return NoContent();
     }
 }
