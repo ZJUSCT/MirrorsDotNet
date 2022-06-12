@@ -34,7 +34,7 @@ public class WebHookController : ControllerBase
     }
 
     /// <summary>
-    /// Webhook index to test if the webhook is working. 
+    /// Webhook index to test if the webhook is working
     /// </summary>
     /// <returns></returns>
     [HttpGet]
@@ -45,7 +45,7 @@ public class WebHookController : ControllerBase
     }
 
     /// <summary>
-    /// Update Mirror Sync Status
+    /// Update mirror sync status
     /// </summary>
     /// <param name="id">mirror id (should match with config file)</param>
     /// <param name="reportStatus">new status</param>
@@ -67,7 +67,7 @@ public class WebHookController : ControllerBase
     }
 
     /// <summary>
-    /// Trig the manager to re-gen the file index.
+    /// Trig the manager to re-gen the file index
     /// </summary>
     /// <param name="id">file index id (should match config file)</param>
     [HttpPost("index/{id}")]

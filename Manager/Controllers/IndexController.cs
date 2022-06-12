@@ -15,24 +15,4 @@ public class IndexController : Controller
     {
         return Content("[Mirrors.NET] Manager API Working...");
     }
-
-    /// <summary>
-    /// Terms
-    /// </summary>
-    /// <returns></returns>
-    [HttpGet("terms")]
-    public ActionResult Terms()
-    {
-        return Content("Non-commercial use only.");
-    }
-
-    /// <summary>
-    /// License
-    /// </summary>
-    /// <returns></returns>
-    [HttpGet("license")]
-    public ActionResult License()
-    {
-        return Content("Internal Usage Only");
-    }
 }

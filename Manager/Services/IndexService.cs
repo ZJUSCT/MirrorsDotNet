@@ -30,6 +30,7 @@ public class IndexService : IIndexService
     /// <param name="indexPath">index root path</param>
     /// <param name="regexPattern">regex to match the filename</param>
     /// <param name="sortBy">string to sort by</param>
+    /// <param name="excludePattern">exclude path from index</param>
     /// <returns>List of UrlItems</returns>
     /// <exception cref="ArgumentException"></exception>
     public static List<UrlItem> GenIndex(string indexPath, string regexPattern, string sortBy,
