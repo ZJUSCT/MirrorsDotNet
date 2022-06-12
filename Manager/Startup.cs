@@ -79,7 +79,10 @@ public class Startup
             }
         }
 
-        app.UseHangfireDashboard();
+        app.UseHangfireDashboard("/hangfire", new DashboardOptions
+        {
+            Authorization = new [] { new HangFireAuthorizationFilter() }
+        });
 
         app.UseRouting();
 
