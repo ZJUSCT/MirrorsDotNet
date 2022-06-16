@@ -26,4 +26,4 @@ Configs
 
 ### Worker
 
-Written in Go, please refer to [xxx](xxx)
+Written in Go, please refer to [mirror-worker](https://github.com/ZJUSCT/mirror-worker)
