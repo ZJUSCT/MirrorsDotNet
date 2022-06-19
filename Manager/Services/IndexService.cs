@@ -6,6 +6,7 @@ using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using Manager.Models;
 using Manager.Utils;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 
 namespace Manager.Services;
@@ -33,7 +34,7 @@ public class IndexService : IIndexService
     /// <param name="excludePattern">exclude path from index</param>
     /// <returns>List of UrlItems</returns>
     /// <exception cref="ArgumentException"></exception>
-    public static List<UrlItem> GenIndex(string indexPath, string regexPattern, string sortBy,
+    public List<UrlItem> GenIndex(string indexPath, string regexPattern, string sortBy,
         string excludePattern = null)
     {
         // Data structure to hold names of subfolders to be
@@ -46,7 +47,8 @@ public class IndexService : IIndexService
 
         if (!Directory.Exists(root))
         {
-            throw new ArgumentException();
+            _logger.LogWarning("Root dir {Root} not found!", root);
+            return res;
         }
 
         dirs.Push(root);
@@ -70,12 +72,12 @@ public class IndexService : IIndexService
             // about the systems on which this code will run.
             catch (UnauthorizedAccessException e)
             {
-                Console.WriteLine(e.Message);
+                _logger.LogWarning(e.Message);
                 continue;
             }
             catch (DirectoryNotFoundException e)
             {
-                Console.WriteLine(e.Message);
+                _logger.LogWarning(e.Message);
                 continue;
             }
 
@@ -86,12 +88,12 @@ public class IndexService : IIndexService
             }
             catch (UnauthorizedAccessException e)
             {
-                Console.WriteLine(e.Message);
+                _logger.LogWarning(e.Message);
                 continue;
             }
             catch (DirectoryNotFoundException e)
             {
-                Console.WriteLine(e.Message);
+                _logger.LogWarning(e.Message);
                 continue;
             }
 
@@ -103,10 +105,10 @@ public class IndexService : IIndexService
                 {
                     // Perform whatever action is required in your scenario.
                     var fi = new FileInfo(file);
-                    // Console.WriteLine("{0}: {1}, {2}", fi.Name, fi.Length, fi.CreationTime);
                     var matches = rx.Matches(fi.Name);
                     if (matches.Count == 0) continue; // file not match
                     if (excludeRx.IsMatch(fi.FullName)) continue; // file path is excluded
+                    _logger.LogInformation("{0}: {1}, {2}", fi.Name, fi.Length, fi.CreationTime);
                     res.Add(new UrlItem
                     {
                         Name = fi.Name,
@@ -119,7 +121,7 @@ public class IndexService : IIndexService
                     // If file was deleted by a separate application
                     //  or thread since the call to TraverseTree()
                     // then just continue.
-                    Console.WriteLine(e.Message);
+                    _logger.LogWarning(e.Message);
                 }
             }
 
@@ -128,7 +130,7 @@ public class IndexService : IIndexService
             foreach (var subDir in subDirs)
             {
                 if (IsSymbolic(subDir)) continue;
-                if (excludeRx.IsMatch(subDir)) continue;
+                if (excludePattern != null && excludeRx.IsMatch(subDir)) continue;
                 dirs.Push(subDir);
             }
         }
@@ -149,7 +151,7 @@ public class IndexService : IIndexService
 
     public async Task GenIndexAsync(string indexId)
     {
-        _logger.LogInformation("UpdateReleaseSyncStatus: {Id}", indexId);
+        _logger.LogInformation("Update Index: {Id}", indexId);
 
         var indexConfig = await _context.IndexConfigs.FindAsync(indexId);
         if (indexConfig == null)
@@ -159,7 +161,7 @@ public class IndexService : IIndexService
         }
 
         var registerTargetId = indexConfig.RegisterId;
-        var targetMirrorItem = await _context.Mirrors.FindAsync(registerTargetId);
+        var targetMirrorItem = await _context.Mirrors.Include(mirror => mirror.Files).FirstOrDefaultAsync(i => i.Id == registerTargetId);
 
         if (targetMirrorItem == null)
         {
@@ -167,7 +169,7 @@ public class IndexService : IIndexService
             return;
         }
 
-        var newUrlItems = GenIndex(indexConfig.IndexPath, indexConfig.Pattern, indexConfig.SortBy);
+        var newUrlItems = GenIndex(indexConfig.IndexPath, indexConfig.Pattern, indexConfig.SortBy, indexConfig.ExcludePattern);
 
         // update url items
         // ref: https://docs.microsoft.com/en-us/ef/core/saving/disconnected-entities#handling-deletes

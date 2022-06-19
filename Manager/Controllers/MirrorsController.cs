@@ -33,7 +33,7 @@ public class MirrorsController : ControllerBase
     public async Task<List<MirrorItemDto>> GetAllMirrors()
     {
         _logger.LogInformation("Get Request: GetAllMirrors");
-        var mirrorList = await _context.Mirrors.ToListAsync();
+        var mirrorList = await _context.Mirrors.Include(mirror => mirror.Files).ToListAsync();
         var mirrorDtoList = mirrorList.Select(mirror => _mapper.Map<MirrorItemDto>(mirror)).ToList();
         return mirrorDtoList;
     }
@@ -46,7 +46,7 @@ public class MirrorsController : ControllerBase
     public async Task<ActionResult<MirrorItemDto>> GetMirror(string id)
     {
         _logger.LogInformation("Get Request: GetMirror {MirrorId}", id);
-        var mirrorItem = await _context.Mirrors.FindAsync(id);
+        var mirrorItem = await _context.Mirrors.Include(mirror => mirror.Files).FirstOrDefaultAsync(i => i.Id == id);
         if (mirrorItem == null)
         {
             return NotFound();
