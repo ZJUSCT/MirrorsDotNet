@@ -10,5 +10,5 @@ services:
       - TZ=Aisa/Shanghai
     volumes:
       - /srv/mono-conf/mirrorsdotnet:/app/Configs
-      - /data/storage:/app/Data
+      - /data/storage/direct:/app/Data
       - /srv/mirrorsdotnet-status:/app/Status
