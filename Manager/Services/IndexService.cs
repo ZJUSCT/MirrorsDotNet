@@ -107,11 +107,10 @@ public class IndexService : IIndexService
                     var fi = new FileInfo(file);
                     var matches = rx.Matches(fi.Name);
                     if (matches.Count == 0) continue; // file not match
-                    if (excludeRx.IsMatch(fi.FullName)) continue; // file path is excluded
                     _logger.LogInformation("{0}: {1}, {2}", fi.Name, fi.Length, fi.CreationTime);
                     res.Add(new UrlItem
                     {
-                        Name = fi.Name,
+                        Name = Regex.Replace(fi.Name, regexPattern, sortBy),
                         Url = $"/{Path.GetRelativePath(Constants.ContentPath, fi.FullName)}",
                         SortKey = Regex.Replace(fi.Name, regexPattern, sortBy)
                     });
@@ -121,7 +120,7 @@ public class IndexService : IIndexService
                     // If file was deleted by a separate application
                     //  or thread since the call to TraverseTree()
                     // then just continue.
-                    _logger.LogWarning(e.Message);
+                    _logger.LogWarning("{Msg}", e.Message);
                 }
             }
 
