@@ -14,4 +14,6 @@ public static class Constants
     public const string HangFireSqliteConnectionString = "Data Source=Status/hangfire-status.db;";
     public const string HangFireServerName = "HangFireCronScheduler";
     public const string HangFireJobPrefix = "SyncJob_";
+    public const string PrometheusInfoMetricName = "manager_info";
+    public const string PrometheusStatusMetricName = "mirror_status";
 }

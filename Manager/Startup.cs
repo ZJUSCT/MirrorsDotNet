@@ -4,6 +4,7 @@ using System.Reflection;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using Hangfire;
+using Hangfire.Prometheus.NetCore;
 using Hangfire.SQLite;
 using Manager.Models;
 using Manager.Services;
@@ -11,11 +12,11 @@ using Manager.Utils;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.OpenApi.Models;
+using Prometheus;
 
 namespace Manager;
 
@@ -46,7 +47,7 @@ public class Startup
             c.SwaggerDoc(
                 Constants.ApiVersion,
                 new OpenApiInfo { Title = "Manager", Version = Constants.ApiVersion }
-                );
+            );
             // Set the comments path for the Swagger JSON and UI.
             var xmlFile = $"{Assembly.GetExecutingAssembly().GetName().Name}.xml";
             var xmlPath = Path.Combine(AppContext.BaseDirectory, xmlFile);
@@ -65,6 +66,7 @@ public class Startup
         });
         services.AddIndexService();
         services.AddConfigService();
+        services.AddPrometheusExporterService();
     }
 
     // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
@@ -74,7 +76,9 @@ public class Startup
         {
             app.UseDeveloperExceptionPage();
             app.UseSwagger();
-            app.UseSwaggerUI(c => c.SwaggerEndpoint($"/swagger/{Constants.ApiVersion}/swagger.json", $"Mirrors.NET API {Constants.ApiVersion}"));;
+            app.UseSwaggerUI(c => c.SwaggerEndpoint($"/swagger/{Constants.ApiVersion}/swagger.json",
+                $"Mirrors.NET API {Constants.ApiVersion}"));
+            ;
         }
 
         using (var serviceScope = app.ApplicationServices.GetService<IServiceScopeFactory>()?.CreateScope())
@@ -93,10 +97,14 @@ public class Startup
 
         app.UseHangfireDashboard("/hangfire", new DashboardOptions
         {
-            Authorization = new [] { new HangFireAuthorizationFilter() }
+            Authorization = new[] { new HangFireAuthorizationFilter() }
         });
 
         app.UseRouting();
+        
+        // app.UseHttpMetrics(); // will produce too much metrics
+        
+        app.UsePrometheusHangfireExporter();
 
         app.UseAuthorization();
 
@@ -104,6 +112,7 @@ public class Startup
         {
             endpoints.MapControllers();
             endpoints.MapHangfireDashboard();
+            endpoints.MapMetrics();
         });
     }
 }

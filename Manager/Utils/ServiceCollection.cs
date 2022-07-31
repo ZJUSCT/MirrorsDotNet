@@ -14,4 +14,9 @@ public static class ServiceCollection
     {
         return services.AddTransient<IConfigService, ConfigService>();
     }
+    
+    public static IServiceCollection AddPrometheusExporterService(this IServiceCollection services)
+    {
+        return services.AddTransient<IMetricExporterService, PrometheusExporterService>();
+    }
 }

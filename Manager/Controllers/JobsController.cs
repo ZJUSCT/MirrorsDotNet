@@ -20,15 +20,17 @@ public class JobController : ControllerBase
     private readonly MirrorContext _context;
     private readonly IMapper _mapper;
     private readonly IIndexService _indexService;
+    private readonly IMetricExporterService _exporter;
     private static readonly Mutex Mutex = new();
 
     public JobController(ILogger<JobController> logger, MirrorContext context, IMapper mapper,
-        IIndexService indexService)
+        IIndexService indexService, IMetricExporterService exporter)
     {
         _logger = logger;
         _context = context;
         _mapper = mapper;
         _indexService = indexService;
+        _exporter = exporter;
     }
 
     /// <summary>
@@ -168,6 +170,7 @@ public class JobController : ControllerBase
 
         await _context.SaveChangesAsync();
         await transaction.CommitAsync();
+        _exporter.ExportMirrorState(relatedMirrorItem.Id, relatedMirrorItem.Status);
         _logger.LogInformation("Updated job {JobId} status to {Status}", jobId, body.Status);
 
         // Generate index

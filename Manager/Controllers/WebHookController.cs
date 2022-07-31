@@ -22,8 +22,11 @@ public class WebHookController : ControllerBase
     private readonly IRecurringJobManager _jobManager;
     private readonly IIndexService _indexService;
     private readonly IConfigService _configService;
+    private readonly IMetricExporterService _exporter;
 
-    public WebHookController(ILogger<WebHookController> logger, MirrorContext context, IMapper mapper, IRecurringJobManager jobManager, IIndexService indexService, IConfigService configService)
+    public WebHookController(ILogger<WebHookController> logger, MirrorContext context, IMapper mapper,
+        IRecurringJobManager jobManager, IIndexService indexService, IConfigService configService,
+        IMetricExporterService exporter)
     {
         _logger = logger;
         _context = context;
@@ -31,6 +34,7 @@ public class WebHookController : ControllerBase
         _jobManager = jobManager;
         _indexService = indexService;
         _configService = configService;
+        _exporter = exporter;
     }
 
     /// <summary>
@@ -61,7 +65,9 @@ public class WebHookController : ControllerBase
             _logger.LogError("Mirror {Name} not found", id);
             return NotFound();
         }
+
         mirrorConfig.UpdateStatus(reportStatus);
+        _exporter.ExportMirrorState(mirrorConfig.Id, mirrorConfig.Status);
 
         return Ok();
     }
