@@ -121,7 +121,7 @@ Prometheus metrics exporting manager's basic info, mirrors' status and Hangfire'
 
 ## Configs
 
-Example configs can be found at [Manager/Configs](https://github.com/ZJUSCT/MirrorsDotNet/tree/main/Manager/Configs).
+Example configs can be found at [Manager/Configs](/Manager/Configs).
 
 ### Config Folder Example Layout
 
