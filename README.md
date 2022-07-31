@@ -75,6 +75,8 @@ Mirrors.NET is a simple, fast, and reliable mirror management service build with
 
 ## API
 
+Swagger documentation is available at [Docs/Swagger.json](/Docs/Swagger.json)
+
 ### `/`
 
 ping usage.
@@ -115,7 +117,7 @@ Internal Hangfire's dashboard.
 
 ### `/metrics`
 
-Prometheus metrics exporting manager's basic info, mirrors' status and Hangfire's job status.
+Prometheus metrics exporting manager's basic info, mirrors' status and Hangfire's job status. An example metric is placed at [Docs/Metrics.md](/Docs/Metrics.md).
 
 ## Configs
 
