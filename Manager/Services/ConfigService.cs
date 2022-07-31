@@ -18,12 +18,16 @@ public class ConfigService : IConfigService
     private readonly MirrorContext _context;
     private readonly IMapper _mapper;
     private readonly IRecurringJobManager _jobManager;
-    public ConfigService(MirrorContext context, ILogger<ConfigService> logger, IMapper mapper, IRecurringJobManager jobManager)
+    private readonly IMetricExporterService _exporter;
+
+    public ConfigService(MirrorContext context, ILogger<ConfigService> logger, IMapper mapper,
+        IRecurringJobManager jobManager, IMetricExporterService exporter)
     {
         _context = context;
         _logger = logger;
         _mapper = mapper;
         _jobManager = jobManager;
+        _exporter = exporter;
     }
 
     /// <summary>
@@ -57,6 +61,7 @@ public class ConfigService : IConfigService
                     _ => MirrorStatus.Unknown
                 };
                 await _context.Mirrors.AddAsync(newMirrorItem);
+                _exporter.ExportMirrorState(newMirrorItem.Id, newMirrorItem.Status);
             }
             else
             {
@@ -121,7 +126,7 @@ public class ConfigService : IConfigService
             }
 
             _logger.LogInformation("Loaded File Index Config {ConfigName}", indexConfig.Id);
-            
+
             var registerTargetId = indexConfig.RegisterId;
             var targetMirrorItem = await _context.Mirrors.FindAsync(registerTargetId);
 
@@ -133,7 +138,9 @@ public class ConfigService : IConfigService
             {
                 targetMirrorItem.IndexedFilesType = indexConfig.Category;
             }
-            _logger.LogInformation("Registered Mirror {MirrorId} Indexed Files Type {Type}", registerTargetId, indexConfig.Category);
+
+            _logger.LogInformation("Registered Mirror {MirrorId} Indexed Files Type {Type}", registerTargetId,
+                indexConfig.Category);
         }
 
         // Remove index if not existed in config
