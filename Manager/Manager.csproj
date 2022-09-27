@@ -13,18 +13,18 @@
     <ItemGroup>
         <PackageReference Include="AutoMapper" Version="11.0.1" />
         <PackageReference Include="AutoMapper.Extensions.Microsoft.DependencyInjection" Version="11.0.0" />
-        <PackageReference Include="Hangfire" Version="1.7.30" />
-        <PackageReference Include="Hangfire.AspNetCore" Version="1.7.30" />
-        <PackageReference Include="Hangfire.Core" Version="1.7.30" />
+        <PackageReference Include="Hangfire" Version="1.7.31" />
+        <PackageReference Include="Hangfire.AspNetCore" Version="1.7.31" />
+        <PackageReference Include="Hangfire.Core" Version="1.7.31" />
         <PackageReference Include="Hangfire.Prometheus.NetCore" Version="1.0.50" />
         <PackageReference Include="Hangfire.SQLite" Version="1.4.2" />
-        <PackageReference Include="Microsoft.EntityFrameworkCore" Version="6.0.7" />
-        <PackageReference Include="Microsoft.EntityFrameworkCore.Sqlite" Version="6.0.7" />
+        <PackageReference Include="Microsoft.EntityFrameworkCore" Version="6.0.9" />
+        <PackageReference Include="Microsoft.EntityFrameworkCore.Sqlite" Version="6.0.9" />
         <PackageReference Include="Microsoft.EntityFrameworkCore.Sqlite.Design" Version="1.1.6" />
         <PackageReference Include="prometheus-net" Version="6.0.0" />
         <PackageReference Include="prometheus-net.AspNetCore" Version="6.0.0" />
         <PackageReference Include="Swashbuckle.AspNetCore" Version="6.4.0" />
-        <PackageReference Include="YamlDotNet" Version="12.0.0" />
+        <PackageReference Include="YamlDotNet" Version="12.0.1" />
     </ItemGroup>
 
 </Project>
