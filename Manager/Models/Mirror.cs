@@ -15,7 +15,8 @@ public enum MirrorStatus
     Paused,
     Cached,
     ReverseProxied,
-    Unknown
+    Unknown,
+    Pending
 }
 
 public enum MirrorType
