@@ -14,9 +14,12 @@ namespace Manager.Services;
 public class ScheduleService
 {
     private readonly IServiceProvider _serviceProvider;
-    public ScheduleService(IServiceProvider serviceProvider)
+    private readonly IMetricExporterService _exporter;
+
+    public ScheduleService(IServiceProvider serviceProvider, IMetricExporterService exporter)
     {
         _serviceProvider = serviceProvider;
+        _exporter = exporter;
     }
 
     public async Task Schedule(string mirrorId)
@@ -65,6 +68,8 @@ public class ScheduleService
             }
 
             relatedMirror.NextScheduled = job.NextExecution ?? DateTime.MinValue;
+            relatedMirror.UpdateStatus(MirrorStatus.Pending);
+            _exporter.ExportMirrorState(relatedMirror.Id, relatedMirror.Status);
             await context.SyncJobs.AddAsync(newJobItem);
             await context.SaveChangesAsync();
             await transaction.CommitAsync();
