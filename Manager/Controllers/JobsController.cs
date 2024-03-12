@@ -195,12 +195,14 @@ public class JobController : ControllerBase
                 throw new ArgumentOutOfRangeException();
         }
 
+        await _context.SaveChangesAsync();
+        await transaction.CommitAsync();
+
         // Check timeout for other running jobs
         await CheckTimeoutJob();
 
-        await _context.SaveChangesAsync();
-        await transaction.CommitAsync();
         Mutex.ReleaseMutex();
+
         _exporter.ExportMirrorState(relatedMirrorItem.Id, relatedMirrorItem.Status);
         _logger.LogInformation("Updated job {JobId} status to {Status}", jobId, body.Status);
 
