@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using AutoMapper;
 using Manager.Models;
 using Manager.Services;
+using Manager.Utils;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
@@ -94,6 +95,32 @@ public class JobController : ControllerBase
         _logger.LogInformation("Worker {WorkerId} requested, but no job to be assigned", workerId);
         return NoContent();
     }
+    
+    private async Task CheckTimeoutJob()
+    {
+        // iterate all running jobs to check timeout
+        var runningJobs = await _context.SyncJobs
+            .Where(x => x.Status == JobStatus.Assigned)
+            .ToListAsync();
+        var timeoutJobs = runningJobs.Where(x => x.UpdateTime.Add(TimeHelper.ParseTimeSpan(x.Timeout)) < DateTime.Now).ToList();
+
+        // update status
+        foreach (var job in timeoutJobs)
+        {
+            var relatedMirrorItem = await _context.Mirrors.FirstOrDefaultAsync(x => x.Id == job.MirrorId);
+            if (relatedMirrorItem == null)
+            {
+                continue;
+            }
+
+            relatedMirrorItem.UpdateStatus(MirrorStatus.Failed);
+            job.Status = JobStatus.Failed;
+            job.ErrorMessage = "Timeout";
+            await _context.SaveChangesAsync();
+            _exporter.ExportMirrorState(relatedMirrorItem.Id, relatedMirrorItem.Status);
+            _logger.LogInformation("Job {JobId} for mirror {MirrorId} timeout", job.Id, job.MirrorId);
+        }
+    }
 
     /// <summary>
     /// Update job status
@@ -140,11 +167,11 @@ public class JobController : ControllerBase
         var relatedMirrorItem = await _context.Mirrors.FirstOrDefaultAsync(x => x.Id == job.MirrorId);
         if (relatedMirrorItem == null)
         {
-            Mutex.ReleaseMutex();
             return BadRequest("Related mirror item not found");
         }
 
         // Do update
+        Mutex.WaitOne();
         await using var transaction = await _context.Database.BeginTransactionAsync();
         job.Status = body.Status;
         job.ContainerId = body.ContainerId;
@@ -170,6 +197,12 @@ public class JobController : ControllerBase
 
         await _context.SaveChangesAsync();
         await transaction.CommitAsync();
+
+        // Check timeout for other running jobs
+        await CheckTimeoutJob();
+
+        Mutex.ReleaseMutex();
+
         _exporter.ExportMirrorState(relatedMirrorItem.Id, relatedMirrorItem.Status);
         _logger.LogInformation("Updated job {JobId} status to {Status}", jobId, body.Status);
 
