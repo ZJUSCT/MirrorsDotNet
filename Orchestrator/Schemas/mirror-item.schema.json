@@ -1,0 +1,136 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Mirror item config schema",
+  "type": "object",
+  "properties": {
+    "id": {
+      "type": "string",
+      "description": "Unique identifier of the mirror item."
+    },
+    "info": {
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "object",
+          "description": "User friendly name of the mirror item.",
+          "properties": {
+            "en": {
+              "type": "string"
+            },
+            "zh": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "en",
+            "zh"
+          ]
+        },
+        "description": {
+          "type": "object",
+          "description": "User friendly description of the mirror item.",
+          "properties": {
+            "en": {
+              "type": "string"
+            },
+            "zh": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "en",
+            "zh"
+          ]
+        },
+        "type": {
+          "enum": ["sync", "reverseProxy", "cached", "other"]
+        },
+        "upstream": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "name",
+        "description",
+        "type",
+        "upstream"
+      ]
+    },
+    "sync": {
+      "type": "object",
+      "properties": {
+        "jobName": {
+          "type": "string",
+          "description": "Container name of the sync job."
+        },
+        "interval": {
+          "type": "string",
+          "description": "Interval of the sync job."
+        },
+        "timeout": {
+          "type": "string",
+          "description": "Timeout of the sync job."
+        },
+        "image": {
+          "type": "string",
+          "description": "Container image used in the sync job."
+        },
+        "pull": {
+          "enum": ["always", "ifNotExists", "never"]
+        },
+        "volumes": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "src": {
+                "type": "string",
+                "description": "Source path in the host machine."
+              },
+              "dst": {
+                "type": "string",
+                "description": "Destination path in the container."
+              },
+              "readOnly": {
+                "type": "boolean",
+                "description": "Whether the volume is read-only."
+              }
+            },
+            "required": [
+              "src",
+              "dst"
+            ]
+          }
+        },
+        "command": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "description": "Command to run in the container."
+          }
+        },
+        "environments": {
+          "type": "array",
+          "description": "Environment variables of the container.",
+          "items": {
+            "type": "string"
+          }
+        }
+      },
+      "required": [
+        "jobName",
+        "interval",
+        "timeout",
+        "image",
+        "pull",
+        "volumes",
+        "command",
+        "environments"
+      ]
+    }
+  },
+  "required": [
+    "id",
+    "info"
+  ]
+}
