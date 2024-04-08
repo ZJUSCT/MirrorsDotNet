@@ -66,7 +66,7 @@ public class JobQueue
                 Id = job.MirrorItem.Config.Id,
                 Status = MirrorStatus.Failed,
                 LastSyncAt = job.MirrorItem.LastSyncAt,
-                Size = job.MirrorItem.Size,
+                Size = job.MirrorItem.Size
             });
             var newJob = new SyncJob(job);
             newJob.TaskShouldStartAt = DateTime.Now;
@@ -101,7 +101,7 @@ public class JobQueue
             Id = job.MirrorItem.Config.Id,
             Status = MirrorStatus.Syncing,
             LastSyncAt = job.MirrorItem.LastSyncAt,
-            Size = job.MirrorItem.Size,
+            Size = job.MirrorItem.Size
         });
         return true;
     }
@@ -128,7 +128,7 @@ public class JobQueue
                 Id = job.MirrorItem.Config.Id,
                 Status = status,
                 LastSyncAt = job.MirrorItem.LastSyncAt,
-                Size = job.MirrorItem.Size,
+                Size = job.MirrorItem.Size
             });
         } else // if (status == MirrorStatus.Succeeded)
         {
@@ -137,7 +137,7 @@ public class JobQueue
                 Id = job.MirrorItem.Config.Id,
                 Status = status,
                 LastSyncAt = DateTime.Now,
-                Size = job.MirrorItem.Size,
+                Size = job.MirrorItem.Size
             });
         }
 

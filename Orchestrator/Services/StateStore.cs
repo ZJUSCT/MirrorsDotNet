@@ -73,7 +73,7 @@ public class StateStore : IStateStore
             var newInfo = new MirrorItemInfo(conf)
             {
                 Status = MirrorStatus.Unknown,
-                LastSyncAt = DateTime.MinValue,
+                LastSyncAt = DateTime.MinValue
             };
             var savedInfo = savedInfos.FirstOrDefault(x => x.Id == conf.Id);
             if (savedInfo != null)
@@ -88,7 +88,7 @@ public class StateStore : IStateStore
                 {
                     Id = conf.Id,
                     Status = MirrorStatus.Unknown,
-                    LastSyncAt = DateTime.MinValue,
+                    LastSyncAt = DateTime.MinValue
                 });
             }
 
@@ -135,7 +135,7 @@ public class StateStore : IStateStore
             Id = info.Id,
             Status = info.Status,
             LastSyncAt = info.LastSyncAt.ToUniversalTime(),
-            Size = info.Size,
+            Size = info.Size
         });
 
         try

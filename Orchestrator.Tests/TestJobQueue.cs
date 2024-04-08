@@ -6,7 +6,7 @@ namespace Orchestrator.Tests;
 
 public class TestJobQueue
 {
-    private MirrorItemInfo genMirrorItem(string id, TimeSpan interval, TimeSpan timeout, MirrorStatus status, DateTime lastSyncAt)
+    private MirrorItemInfo GenMirrorItem(string id, TimeSpan interval, TimeSpan timeout, MirrorStatus status, DateTime lastSyncAt)
     {
         I18NField i18N = new("en", "zh");
         var info = new MirrorInfo { Name = i18N, Description = i18N, Type = SyncType.Sync, Upstream = "" };
@@ -39,9 +39,9 @@ public class TestJobQueue
     {
         List<MirrorItemInfo> itemInfos =
         [
-            genMirrorItem("foo1", TimeSpan.FromSeconds(2), TimeSpan.FromSeconds(1), MirrorStatus.Unknown, DateTime.MinValue),
-            genMirrorItem("foo2", TimeSpan.FromSeconds(2), TimeSpan.FromSeconds(1), MirrorStatus.Unknown, DateTime.MinValue),
-            genMirrorItem("foo3", TimeSpan.FromSeconds(2), TimeSpan.FromSeconds(1), MirrorStatus.Unknown, DateTime.MinValue),
+            GenMirrorItem("foo1", TimeSpan.FromSeconds(2), TimeSpan.FromSeconds(1), MirrorStatus.Unknown, DateTime.MinValue),
+            GenMirrorItem("foo2", TimeSpan.FromSeconds(2), TimeSpan.FromSeconds(1), MirrorStatus.Unknown, DateTime.MinValue),
+            GenMirrorItem("foo3", TimeSpan.FromSeconds(2), TimeSpan.FromSeconds(1), MirrorStatus.Unknown, DateTime.MinValue),
         ];
         var conf = new MockConfiguration();
         var logger = new MockLogger<JobQueue>();
@@ -128,9 +128,9 @@ public class TestJobQueue
     {
         List<MirrorItemInfo> itemInfos =
         [
-            genMirrorItem("foo1", TimeSpan.FromSeconds(2), TimeSpan.FromSeconds(1), MirrorStatus.Unknown, DateTime.MinValue),
-            genMirrorItem("foo2", TimeSpan.FromSeconds(2), TimeSpan.FromSeconds(1), MirrorStatus.Unknown, DateTime.MinValue),
-            genMirrorItem("foo3", TimeSpan.FromSeconds(2), TimeSpan.FromSeconds(1), MirrorStatus.Unknown, DateTime.MinValue),
+            GenMirrorItem("foo1", TimeSpan.FromSeconds(2), TimeSpan.FromSeconds(1), MirrorStatus.Unknown, DateTime.MinValue),
+            GenMirrorItem("foo2", TimeSpan.FromSeconds(2), TimeSpan.FromSeconds(1), MirrorStatus.Unknown, DateTime.MinValue),
+            GenMirrorItem("foo3", TimeSpan.FromSeconds(2), TimeSpan.FromSeconds(1), MirrorStatus.Unknown, DateTime.MinValue),
         ];
         var conf = new MockConfiguration();
         var logger = new MockLogger<JobQueue>();
@@ -156,7 +156,7 @@ public class TestJobQueue
         PrintMirrorStatus(stateStore);
         
         logger.LogInformation("remove foo1, add bar");
-        itemInfos[0] = genMirrorItem("bar", TimeSpan.FromSeconds(2), TimeSpan.FromSeconds(1), MirrorStatus.Unknown, DateTime.MinValue);
+        itemInfos[0] = GenMirrorItem("bar", TimeSpan.FromSeconds(2), TimeSpan.FromSeconds(1), MirrorStatus.Unknown, DateTime.MinValue);
         stateStore.SetMirrorItems(itemInfos);
         jobQueue.Reload();
         

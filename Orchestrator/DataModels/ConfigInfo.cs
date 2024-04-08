@@ -7,14 +7,14 @@ public enum SyncType
     Sync,
     ReverseProxy,
     Cached,
-    Other,
+    Other
 }
 
 public enum PullStrategy
 {
     Always,
     IfNotExists,
-    Never,
+    Never
 }
 
 public record I18NField(string En, string Zh);
@@ -43,7 +43,7 @@ public class MirrorInfo
             "sync" => SyncType.Sync,
             "reverseProxy" => SyncType.ReverseProxy,
             "cached" => SyncType.Cached,
-            _ => SyncType.Other,
+            _ => SyncType.Other
         };
         Upstream = raw.Upstream;
     }
@@ -88,7 +88,7 @@ public class SyncInfo
             "always" => PullStrategy.Always,
             "ifNotExists" => PullStrategy.IfNotExists,
             "never" => PullStrategy.Never,
-            _ => PullStrategy.Never,
+            _ => PullStrategy.Never
         };
         Volumes = raw.Volumes;
         Command = raw.Command;

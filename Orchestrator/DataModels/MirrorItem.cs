@@ -5,7 +5,7 @@ public class MirrorItemInfo
     public ConfigInfo Config { get; init; }
     public MirrorStatus Status { get; set; }
     public DateTime LastSyncAt { get; set; }
-    public UInt64 Size { get; set; }
+    public ulong Size { get; set; }
 
     public MirrorItemInfo(ConfigInfo config)
     {

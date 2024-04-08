@@ -5,8 +5,8 @@ namespace Orchestrator.Tests;
 
 public class MockStateStore : IStateStore
 {
-    private List<MirrorItemInfo> _newMirrorItems = [];
-    private Dictionary<string, MirrorItemInfo> _mirrorItems = [];
+    private List<MirrorItemInfo> _newMirrorItems;
+    private readonly Dictionary<string, MirrorItemInfo> _mirrorItems = [];
 
     public MockStateStore(IEnumerable<MirrorItemInfo> mirrorItems)
     {
