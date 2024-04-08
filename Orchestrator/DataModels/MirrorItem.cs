@@ -1,10 +1,21 @@
 ﻿namespace Orchestrator.DataModels;
 
-public class MirrorItemInfo
+public class MirrorItemInfo(ConfigInfo config)
 {
-    public ConfigInfo Config { get; set; }
+    public ConfigInfo Config { get; } = new (config);
     public MirrorStatus Status { get; set; }
     public DateTime LastSyncAt { get; set; }
+    public UInt64 Size { get; set; }
+
+    public MirrorItemInfo Clone()
+    {
+        return new MirrorItemInfo(config)
+        {
+            Status = Status,
+            LastSyncAt = LastSyncAt,
+            Size = Size
+        };
+    }
 }
 
 public class SyncJob(MirrorItemInfo mirrorItemInfo, DateTime shouldStartAt)

@@ -6,5 +6,5 @@ public interface IStateStore
 {
     void Reload();
     IEnumerable<KeyValuePair<string, MirrorItemInfo>> GetMirrorItemInfos();
-    void SetMirrorInfo(string id, MirrorStatus status, DateTime lastSyncAt);
+    void SetMirrorInfo(SavedInfo info);
 }

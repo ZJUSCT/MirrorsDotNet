@@ -1,4 +1,6 @@
-﻿namespace Orchestrator.DataModels;
+﻿using System.Diagnostics.CodeAnalysis;
+
+namespace Orchestrator.DataModels;
 
 public enum SyncType
 {
@@ -15,62 +17,66 @@ public enum PullStrategy
     Never,
 }
 
-public class I18nField
-{
-    public string En { get; set; }
-    public string Zh { get; set; }
-}
+public record I18NField(string En, string Zh);
 
-public class MirrorInfoRaw
-{
-    public I18nField Name { get; set; }
-    public I18nField Description { get; set; }
-    public string Type { get; set; }
-    public string Upstream { get; set; }
-}
+public record MirrorInfoRaw(I18NField Name, I18NField Description, string Type, string Upstream);
 
 public class MirrorInfo
 {
-    public I18nField Name { get; set; }
-    public I18nField Description { get; set; }
-    public SyncType Type { get; set; }
-    public string Upstream { get; set; }
+    public required I18NField Name { get; init; }
+    public required I18NField Description { get; init; }
+    public SyncType Type { get; init; }
+
+    public required string Upstream { get; init; }
+
+    public MirrorInfo()
+    {
+    }
+
+    [SetsRequiredMembers]
+    public MirrorInfo(MirrorInfoRaw raw)
+    {
+        Name = raw.Name;
+        Description = raw.Description;
+        Type = raw.Type switch
+        {
+            "sync" => SyncType.Sync,
+            "reverseProxy" => SyncType.ReverseProxy,
+            "cached" => SyncType.Cached,
+            _ => SyncType.Other,
+        };
+        Upstream = raw.Upstream;
+    }
 }
 
-public class VolumeInfo
-{
-    public string Src { get; set; }
-    public string Dst { get; set; }
-    public bool ReadOnly { get; set; }
-}
+public record VolumeInfo(string Src, string Dst, bool ReadOnly);
 
-public class SyncInfoRaw
-{
-    public string JobName { get; set; }
-    public string Interval { get; set; }
-    public string Timeout { get; set; }
-    public string Image { get; set; }
-    public string Pull { get; set; }
-    public List<VolumeInfo> Volumes { get; set; }
-    public List<string> Command { get; set; }
-    public List<string> Environments { get; set; }
-}
+public record SyncInfoRaw(
+    string JobName,
+    string Interval,
+    string Timeout,
+    string Image,
+    string Pull,
+    List<VolumeInfo> Volumes,
+    List<string> Command,
+    List<string> Environments);
 
 public class SyncInfo
 {
-    public string JobName { get; set; }
-    public TimeSpan Interval { get; set; }
-    public TimeSpan Timeout { get; set; }
-    public string Image { get; set; }
-    public PullStrategy Pull { get; set; }
-    public List<VolumeInfo> Volumes { get; set; }
-    public List<string> Command { get; set; }
-    public List<string> Environments { get; set; }
+    public required string JobName { get; init; }
+    public TimeSpan Interval { get; init; }
+    public TimeSpan Timeout { get; init; }
+    public required string Image { get; init; }
+    public PullStrategy Pull { get; init; }
+    public required List<VolumeInfo> Volumes { get; init; }
+    public required List<string> Command { get; init; }
+    public required List<string> Environments { get; init; }
 
     public SyncInfo()
     {
     }
 
+    [SetsRequiredMembers]
     public SyncInfo(SyncInfoRaw raw)
     {
         JobName = raw.JobName;
@@ -90,42 +96,34 @@ public class SyncInfo
     }
 }
 
-public class ConfigInfoRaw
-{
-    public string Id { get; set; }
-    public MirrorInfoRaw Info { get; set; }
-    public SyncInfoRaw? Sync { get; set; }
-}
+public record ConfigInfoRaw(string Id, MirrorInfoRaw Info, SyncInfoRaw? Sync);
 
 public class ConfigInfo
 {
-    public string Id { get; set; }
-    public MirrorInfo Info { get; set; }
+    public required string Id { get; set; }
+    public required MirrorInfo Info { get; set; }
     public SyncInfo? Sync { get; set; }
 
     public ConfigInfo()
     {
     }
 
+    [SetsRequiredMembers]
     public ConfigInfo(ConfigInfoRaw rawConf)
     {
         Id = rawConf.Id;
-        Info = new MirrorInfo
-        {
-            Name = rawConf.Info.Name,
-            Description = rawConf.Info.Description,
-            Type = rawConf.Info.Type switch
-            {
-                "sync" => SyncType.Sync,
-                "reverseProxy" => SyncType.ReverseProxy,
-                "cached" => SyncType.Cached,
-                _ => SyncType.Other,
-            },
-            Upstream = rawConf.Info.Upstream,
-        };
+        Info = new MirrorInfo(rawConf.Info);
         if (rawConf.Sync != null)
         {
             Sync = new SyncInfo(rawConf.Sync);
         }
+    }
+
+    [SetsRequiredMembers]
+    public ConfigInfo(ConfigInfo conf)
+    {
+        Id = conf.Id;
+        Info = conf.Info;
+        Sync = conf.Sync;
     }
 }

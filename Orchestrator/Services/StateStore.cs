@@ -70,9 +70,8 @@ public class StateStore : IStateStore
                 continue;
             }
 
-            var newInfo = new MirrorItemInfo
+            var newInfo = new MirrorItemInfo(conf)
             {
-                Config = conf,
                 Status = MirrorStatus.Unknown,
                 LastSyncAt = DateTime.MinValue,
             };
@@ -81,6 +80,7 @@ public class StateStore : IStateStore
             {
                 newInfo.Status = savedInfo.Status;
                 newInfo.LastSyncAt = savedInfo.LastSyncAt.ToLocalTime();
+                newInfo.Size = savedInfo.Size;
             }
             else
             {
@@ -111,12 +111,13 @@ public class StateStore : IStateStore
 
     public IEnumerable<KeyValuePair<string, MirrorItemInfo>> GetMirrorItemInfos()
     {
-        return _mirrorItems;
+        using var _ = new ScopeReadLock(_rwLock);
+        return _mirrorItems.ToDictionary(kv => kv.Key, kv => kv.Value.Clone());
     }
 
-    public void SetMirrorInfo(string id, MirrorStatus status, DateTime lastSyncAt)
+    public void SetMirrorInfo(SavedInfo info)
     {
-        var item = _mirrorItems.FirstOrDefault(x => x.Key == id);
+        var item = _mirrorItems.FirstOrDefault(x => x.Key == info.Id);
         if (item.Key == null)
         {
             return;
@@ -124,15 +125,17 @@ public class StateStore : IStateStore
 
         using (var guard = new ScopeWriteLock(_rwLock))
         {
-            item.Value.Status = status;
-            item.Value.LastSyncAt = lastSyncAt;
+            item.Value.Status = info.Status;
+            item.Value.LastSyncAt = info.LastSyncAt;
+            item.Value.Size = info.Size;
         }
 
         _db.SavedInfos.Update(new SavedInfo
         {
-            Id = id,
-            Status = status,
-            LastSyncAt = lastSyncAt.ToUniversalTime(),
+            Id = info.Id,
+            Status = info.Status,
+            LastSyncAt = info.LastSyncAt.ToUniversalTime(),
+            Size = info.Size,
         });
 
         try

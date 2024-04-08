@@ -14,6 +14,7 @@ public class JobQueue
     private ConcurrentQueue<SyncJob> _pendingQueue = new();
     private ConcurrentQueue<SyncJob> _recloseQueue = new();
     private ReaderWriterLockSlim _rwLock = new();
+    public TimeSpan RetryCoolDown { get; set; } = TimeSpan.FromMinutes(5);
 
     public JobQueue(IConfiguration conf, ILogger<JobQueue> log, IStateStore stateStore)
     {
@@ -50,7 +51,7 @@ public class JobQueue
         {
             foreach (var (guid, job) in _syncingDict)
             {
-                if (job.TaskStartedAt.Add(job.MirrorItem.Config.Sync!.Timeout) < DateTime.Now.AddMinutes(5))
+                if (job.TaskStartedAt.Add(job.MirrorItem.Config.Sync!.Timeout).Add(RetryCoolDown) < DateTime.Now)
                 {
                     jobs.Add(job);
                     _syncingDict.Remove(guid, out _);
@@ -62,7 +63,13 @@ public class JobQueue
         {
             _log.LogWarning("Job {guid}({id}) took too long, marking as failed", job.Guid,
                 job.MirrorItem.Config.Id);
-            _stateStore.SetMirrorInfo(job.MirrorItem.Config.Id, MirrorStatus.Failed, job.MirrorItem.LastSyncAt);
+            _stateStore.SetMirrorInfo(new SavedInfo
+            {
+                Id = job.MirrorItem.Config.Id,
+                Status = MirrorStatus.Failed,
+                LastSyncAt = job.MirrorItem.LastSyncAt,
+                Size = job.MirrorItem.Size,
+            });
             _pendingQueue.Enqueue(new SyncJob(job));
         }
     }
@@ -79,18 +86,32 @@ public class JobQueue
         var hasRecloseJob = _recloseQueue.TryDequeue(out job);
         if (hasRecloseJob)
         {
-            _syncingDict[job!.Guid] = job;
-            job.TaskStartedAt = DateTime.Now;
-            _stateStore.SetMirrorInfo(job.MirrorItem.Config.Id, MirrorStatus.Syncing, job.MirrorItem.LastSyncAt);
-            return true;
+            if (job!.TaskShouldStartAt < DateTime.Now)
+            {
+                _syncingDict[job!.Guid] = job;
+                job.TaskStartedAt = DateTime.Now;
+                _stateStore.SetMirrorInfo(new SavedInfo
+                {
+                    Id = job.MirrorItem.Config.Id,
+                    Status = MirrorStatus.Syncing,
+                    LastSyncAt = job.MirrorItem.LastSyncAt,
+                    Size = job.MirrorItem.Size,
+                });
+                return true;
+            }
+            else
+            {
+                _recloseQueue.Enqueue(job);
+            }
         }
 
         var hasJob = _pendingQueue.TryDequeue(out job);
         if (!hasJob) return false;
 
         // is sync interval passed?
-        if (job!.TaskShouldStartAt < DateTime.Now)
+        if (job!.TaskShouldStartAt > DateTime.Now)
         {
+            var x = DateTime.Now;
             // enqueue the item again
             _pendingQueue.Enqueue(job);
             return false;
@@ -98,14 +119,20 @@ public class JobQueue
 
         _syncingDict[job.Guid] = job;
         job.TaskStartedAt = DateTime.Now;
-        _stateStore.SetMirrorInfo(job.MirrorItem.Config.Id, MirrorStatus.Syncing, DateTime.Now);
+        _stateStore.SetMirrorInfo(new SavedInfo
+        {
+            Id = job.MirrorItem.Config.Id,
+            Status = MirrorStatus.Syncing,
+            LastSyncAt = job.MirrorItem.LastSyncAt,
+            Size = job.MirrorItem.Size,
+        });
         return true;
     }
 
     public void UpdateJobStatus(Guid guid, MirrorStatus status)
     {
         using var guard = new ScopeReadLock(_rwLock);
-        if (!_syncingDict.TryGetValue(guid, out var job))
+        if (!_syncingDict.TryRemove(guid, out var job))
         {
             _log.LogWarning("Job not found: {guid}", guid);
             return;
@@ -119,23 +146,35 @@ public class JobQueue
 
         if (status == MirrorStatus.Failed)
         {
-            _stateStore.SetMirrorInfo(job.MirrorItem.Config.Id, status, job.MirrorItem.LastSyncAt);
+            _stateStore.SetMirrorInfo(new SavedInfo
+            {
+                Id = job.MirrorItem.Config.Id,
+                Status = status,
+                LastSyncAt = job.MirrorItem.LastSyncAt,
+                Size = job.MirrorItem.Size,
+            });
             if (job.Stale)
             {
                 return;
             }
 
             job.FailedCount++;
-            if (job.FailedCount < 3)
+            if (job.FailedCount <= 1)
             {
-                job.TaskShouldStartAt = DateTime.Now.AddMinutes(5);
+                job.TaskShouldStartAt = DateTime.Now.Add(RetryCoolDown);
                 _recloseQueue.Enqueue(job);
+                
+                return;
             }
         }
-        else // if (status == MirrorStatus.Succeeded)
+
+        _stateStore.SetMirrorInfo(new SavedInfo
         {
-            _stateStore.SetMirrorInfo(job.MirrorItem.Config.Id, status, DateTime.Now);
-        }
+            Id = job.MirrorItem.Config.Id,
+            Status = status,
+            LastSyncAt = DateTime.Now,
+            Size = job.MirrorItem.Size,
+        });
 
         if (job.Stale) return;
         _pendingQueue.Enqueue(new SyncJob(job));
