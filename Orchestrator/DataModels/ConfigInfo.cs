@@ -100,9 +100,9 @@ public record ConfigInfoRaw(string Id, MirrorInfoRaw Info, SyncInfoRaw? Sync);
 
 public class ConfigInfo
 {
-    public required string Id { get; set; }
-    public required MirrorInfo Info { get; set; }
-    public SyncInfo? Sync { get; set; }
+    public required string Id { get; init; }
+    public required MirrorInfo Info { get; init; }
+    public SyncInfo? Sync { get; init; }
 
     public ConfigInfo()
     {

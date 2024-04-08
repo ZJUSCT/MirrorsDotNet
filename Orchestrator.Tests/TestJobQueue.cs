@@ -35,19 +35,19 @@ public class TestJobQueue
     }
 
     [Test]
-    public void Test1()
+    public void TestWorkflow()
     {
         List<MirrorItemInfo> itemInfos =
         [
-            genMirrorItem("foo1", TimeSpan.FromSeconds(4), TimeSpan.FromSeconds(2), MirrorStatus.Unknown, DateTime.MinValue),
-            genMirrorItem("foo2", TimeSpan.FromSeconds(4), TimeSpan.FromSeconds(2), MirrorStatus.Unknown, DateTime.MinValue),
-            genMirrorItem("foo3", TimeSpan.FromSeconds(4), TimeSpan.FromSeconds(2), MirrorStatus.Unknown, DateTime.MinValue),
+            genMirrorItem("foo1", TimeSpan.FromSeconds(2), TimeSpan.FromSeconds(1), MirrorStatus.Unknown, DateTime.MinValue),
+            genMirrorItem("foo2", TimeSpan.FromSeconds(2), TimeSpan.FromSeconds(1), MirrorStatus.Unknown, DateTime.MinValue),
+            genMirrorItem("foo3", TimeSpan.FromSeconds(2), TimeSpan.FromSeconds(1), MirrorStatus.Unknown, DateTime.MinValue),
         ];
         var conf = new MockConfiguration();
         var logger = new MockLogger<JobQueue>();
         var stateStore = new MockStateStore(itemInfos);
         var jobQueue = new JobQueue(conf, logger, stateStore);
-        jobQueue.RetryCoolDown = TimeSpan.FromSeconds(5);
+        jobQueue.CoolDown = TimeSpan.FromSeconds(1);
         
         PrintMirrorStatus(stateStore);
         
@@ -73,13 +73,13 @@ public class TestJobQueue
         }
         PrintMirrorStatus(stateStore);
         
-        Thread.Sleep(2100);
+        Thread.Sleep(1000);
         logger.LogInformation("Before interval, no job should be available");
         // should get no job here
         gotJob = jobQueue.TryGetNewJob(out _);
         Assert.That(gotJob, Is.False);
         
-        Thread.Sleep(2000);
+        Thread.Sleep(1100);
         // get a job and fail it
         logger.LogInformation("Get a job and fail it");
         gotJob = jobQueue.TryGetNewJob(out job);
@@ -90,18 +90,6 @@ public class TestJobQueue
         jobQueue.UpdateJobStatus(job.Guid, MirrorStatus.Failed);
         PrintMirrorStatus(stateStore);
         
-        // check if we can get the old job
-        Thread.Sleep(5000);
-        logger.LogInformation("Check if we can still get the job");
-        var oldGuid = job.Guid;
-        gotJob = jobQueue.TryGetNewJob(out job);
-        Assert.That(gotJob, Is.True);
-        logger.LogInformation("Got job {jobId} for {mirrorId}", job!.Guid, job.MirrorItem.Config.Id);
-        Assert.That(job!.Guid, Is.EqualTo(oldGuid));
-        Assert.That(job!.FailedCount, Is.EqualTo(1));
-        PrintMirrorStatus(stateStore);
-        jobQueue.UpdateJobStatus(job.Guid, MirrorStatus.Failed);
-        
         // make a lost job
         logger.LogInformation("Get a job");
         gotJob = jobQueue.TryGetNewJob(out job);
@@ -109,20 +97,13 @@ public class TestJobQueue
         Assert.That(gotJob, Is.True);
         PrintMirrorStatus(stateStore);
         
-        Thread.Sleep(7100);
+        Thread.Sleep(2100);
         logger.LogInformation("Made it lost");
         PrintMirrorStatus(stateStore);
         
         // finish all jobs
         jobs.Clear();
-        logger.LogInformation("Finish all jobs");
-        gotJob = jobQueue.TryGetNewJob(out job);
-        Assert.That(gotJob, Is.True);
-        jobs.Add(job!);
-        logger.LogInformation("Got job {jobId} for {mirrorId}", job!.Guid, job.MirrorItem.Config.Id);
-        // The lost job is in CD
-        Thread.Sleep(4100);
-        for (var i = 1; i < 3; ++i)
+        for (var i = 0; i < 3; ++i)
         {
             gotJob = jobQueue.TryGetNewJob(out job);
             Assert.That(gotJob, Is.True);
@@ -140,5 +121,63 @@ public class TestJobQueue
         Assert.That(gotJob, Is.False);
         
         Assert.Pass();
+    }
+
+    [Test]
+    public void TestJobReload()
+    {
+        List<MirrorItemInfo> itemInfos =
+        [
+            genMirrorItem("foo1", TimeSpan.FromSeconds(2), TimeSpan.FromSeconds(1), MirrorStatus.Unknown, DateTime.MinValue),
+            genMirrorItem("foo2", TimeSpan.FromSeconds(2), TimeSpan.FromSeconds(1), MirrorStatus.Unknown, DateTime.MinValue),
+            genMirrorItem("foo3", TimeSpan.FromSeconds(2), TimeSpan.FromSeconds(1), MirrorStatus.Unknown, DateTime.MinValue),
+        ];
+        var conf = new MockConfiguration();
+        var logger = new MockLogger<JobQueue>();
+        var stateStore = new MockStateStore(itemInfos);
+        var jobQueue = new JobQueue(conf, logger, stateStore);
+        jobQueue.CoolDown = TimeSpan.FromSeconds(1);
+        
+        PrintMirrorStatus(stateStore);
+ 
+        logger.LogInformation("Get All jobs");
+        List<SyncJob> jobs = [];
+        bool gotJob;
+        SyncJob? job;
+        for (var i = 0; i < 3; ++i)
+        {
+            gotJob = jobQueue.TryGetNewJob(out job);
+            Assert.That(gotJob, Is.True);
+            jobs.Add(job!);
+            logger.LogInformation("Got job {jobId} for {mirrorId}", job!.Guid, job.MirrorItem.Config.Id);
+        }
+        gotJob = jobQueue.TryGetNewJob(out _);
+        Assert.That(gotJob, Is.False);
+        PrintMirrorStatus(stateStore);
+        
+        logger.LogInformation("remove foo1, add bar");
+        itemInfos[0] = genMirrorItem("bar", TimeSpan.FromSeconds(2), TimeSpan.FromSeconds(1), MirrorStatus.Unknown, DateTime.MinValue);
+        stateStore.SetMirrorItems(itemInfos);
+        jobQueue.Reload();
+        
+        logger.LogInformation("Finish All jobs");
+        foreach (var j in jobs)
+        {
+            jobQueue.UpdateJobStatus(j.Guid, MirrorStatus.Succeeded);
+        }
+        PrintMirrorStatus(stateStore);
+        
+        Thread.Sleep(2100);
+        logger.LogInformation("Get All jobs");
+        for (var i = 0; i < 3; ++i)
+        {
+            gotJob = jobQueue.TryGetNewJob(out job);
+            Assert.That(gotJob, Is.True);
+            jobs.Add(job!);
+            logger.LogInformation("Got job {jobId} for {mirrorId}", job!.Guid, job.MirrorItem.Config.Id);
+        }
+        gotJob = jobQueue.TryGetNewJob(out _);
+        Assert.That(gotJob, Is.False);
+        PrintMirrorStatus(stateStore);
     }
 }

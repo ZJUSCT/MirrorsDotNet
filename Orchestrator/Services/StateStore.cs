@@ -112,7 +112,7 @@ public class StateStore : IStateStore
     public IEnumerable<KeyValuePair<string, MirrorItemInfo>> GetMirrorItemInfos()
     {
         using var _ = new ScopeReadLock(_rwLock);
-        return _mirrorItems.ToDictionary(kv => kv.Key, kv => kv.Value.Clone());
+        return _mirrorItems.ToDictionary(kv => kv.Key, kv => new MirrorItemInfo(kv.Value));
     }
 
     public void SetMirrorInfo(SavedInfo info)

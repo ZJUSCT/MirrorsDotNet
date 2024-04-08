@@ -16,12 +16,12 @@ public class MockStateStore : IStateStore
     public void Reload()
     {
         _mirrorItems.Clear();
-        _newMirrorItems.ForEach(x => _mirrorItems[x.Config.Id] = x);
+        _newMirrorItems.ForEach(x => _mirrorItems[x.Config.Id] = new MirrorItemInfo(x));
     }
 
     public IEnumerable<KeyValuePair<string, MirrorItemInfo>> GetMirrorItemInfos()
     {
-        return _mirrorItems.ToDictionary(kv => kv.Key, kv => kv.Value.Clone());
+        return _mirrorItems.ToDictionary(kv => kv.Key, kv => new MirrorItemInfo(kv.Value));
     }
 
     public void SetMirrorInfo(SavedInfo info)
