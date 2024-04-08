@@ -6,7 +6,7 @@ namespace Orchestrator.Tests;
 public class MockConfiguration : IConfiguration
 {
     private readonly Dictionary<string, string?> _data = new();
-    
+
     public IEnumerable<IConfigurationSection> GetChildren()
     {
         throw new NotImplementedException();

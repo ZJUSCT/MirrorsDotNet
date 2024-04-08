@@ -2,11 +2,8 @@
 
 public static class IEnumerableExtension
 {
-    public static void ForEach<T>(this System.Collections.Generic.IEnumerable<T> enumerable, System.Action<T> action)
+    public static void ForEach<T>(this IEnumerable<T> enumerable, Action<T> action)
     {
-        foreach (var e in enumerable)
-        {
-            action(e);
-        }
+        foreach (var e in enumerable) action(e);
     }
 }

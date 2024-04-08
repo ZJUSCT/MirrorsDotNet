@@ -5,14 +5,14 @@ namespace Orchestrator.Tests;
 
 public class MockStateStore : IStateStore
 {
-    private List<MirrorItemInfo> _newMirrorItems;
     private readonly Dictionary<string, MirrorItemInfo> _mirrorItems = [];
+    private List<MirrorItemInfo> _newMirrorItems;
 
     public MockStateStore(IEnumerable<MirrorItemInfo> mirrorItems)
     {
         _newMirrorItems = mirrorItems.ToList();
     }
-    
+
     public void Reload()
     {
         _mirrorItems.Clear();
@@ -24,13 +24,15 @@ public class MockStateStore : IStateStore
         return _mirrorItems.ToDictionary(kv => kv.Key, kv => new MirrorItemInfo(kv.Value));
     }
 
+    public MirrorItemInfo? GetMirrorItemInfoById(string id)
+    {
+        throw new NotImplementedException();
+    }
+
     public void SetMirrorInfo(SavedInfo info)
     {
         var item = _mirrorItems.FirstOrDefault(x => x.Key == info.Id);
-        if (item.Key == null)
-        {
-            return;
-        }
+        if (item.Key == null) return;
 
         item.Value.Status = info.Status;
         item.Value.LastSyncAt = info.LastSyncAt;

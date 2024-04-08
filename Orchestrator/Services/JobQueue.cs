@@ -9,11 +9,10 @@ public class JobQueue
 {
     private readonly IConfiguration _conf;
     private readonly ILogger<JobQueue> _log;
+    private readonly ConcurrentQueue<SyncJob> _pendingQueue = new();
+    private readonly ReaderWriterLockSlim _rwLock = new();
     private readonly IStateStore _stateStore;
-    private ConcurrentDictionary<Guid, SyncJob> _syncingDict = new();
-    private ConcurrentQueue<SyncJob> _pendingQueue = new();
-    private ReaderWriterLockSlim _rwLock = new();
-    public TimeSpan CoolDown { get; set; } = TimeSpan.FromMinutes(5);
+    private readonly ConcurrentDictionary<Guid, SyncJob> _syncingDict = new();
 
     public JobQueue(IConfiguration conf, ILogger<JobQueue> log, IStateStore stateStore)
     {
@@ -23,6 +22,8 @@ public class JobQueue
 
         Reload();
     }
+
+    public TimeSpan CoolDown { get; set; } = TimeSpan.FromMinutes(5);
 
     public void Reload()
     {
@@ -40,6 +41,21 @@ public class JobQueue
         syncJobs.ForEach(x => _pendingQueue.Enqueue(x));
     }
 
+    public IEnumerable<KeyValuePair<string, MirrorItemInfo>> GetMirrorItems()
+    {
+        return _stateStore.GetMirrorItemInfos();
+    }
+
+    public MirrorItemInfo? GetMirrorItemById(string id)
+    {
+        return _stateStore.GetMirrorItemInfoById(id);
+    }
+
+    public (int, int) GetQueueStatus()
+    {
+        return (_pendingQueue.Count, _syncingDict.Count);
+    }
+
     private void CheckLostJobs()
     {
         // we need to acquire an write lock here
@@ -48,13 +64,11 @@ public class JobQueue
         using (var guard = new ScopeWriteLock(_rwLock))
         {
             foreach (var (guid, job) in _syncingDict)
-            {
                 if (job.TaskStartedAt.Add(job.MirrorItem.Config.Sync!.Timeout).Add(CoolDown) < DateTime.Now)
                 {
                     jobs.Add(job);
                     _syncingDict.Remove(guid, out _);
                 }
-            }
         }
 
         foreach (var job in jobs)
@@ -122,7 +136,6 @@ public class JobQueue
         }
 
         if (status == MirrorStatus.Failed)
-        {
             _stateStore.SetMirrorInfo(new SavedInfo
             {
                 Id = job.MirrorItem.Config.Id,
@@ -130,8 +143,7 @@ public class JobQueue
                 LastSyncAt = job.MirrorItem.LastSyncAt,
                 Size = job.MirrorItem.Size
             });
-        } else // if (status == MirrorStatus.Succeeded)
-        {
+        else // if (status == MirrorStatus.Succeeded)
             _stateStore.SetMirrorInfo(new SavedInfo
             {
                 Id = job.MirrorItem.Config.Id,
@@ -139,7 +151,6 @@ public class JobQueue
                 LastSyncAt = DateTime.Now,
                 Size = job.MirrorItem.Size
             });
-        }
 
         if (job.Stale) return;
         _pendingQueue.Enqueue(new SyncJob(job));

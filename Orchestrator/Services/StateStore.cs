@@ -9,10 +9,10 @@ namespace Orchestrator.Services;
 public class StateStore : IStateStore
 {
     private readonly IConfiguration _conf;
-    private readonly ILogger<StateStore> _log;
     private readonly OrchContext _db;
-    private ReaderWriterLockSlim _rwLock = new();
+    private readonly ILogger<StateStore> _log;
     private Dictionary<string, MirrorItemInfo> _mirrorItems = [];
+    private readonly ReaderWriterLockSlim _rwLock = new();
 
     public StateStore(IConfiguration conf, ILogger<StateStore> log, OrchContext db)
     {
@@ -25,10 +25,7 @@ public class StateStore : IStateStore
     public void Reload()
     {
         var confPath = _conf["ConfPath"];
-        if (string.IsNullOrWhiteSpace(confPath))
-        {
-            throw new Exception("Mirror configs path not set");
-        }
+        if (string.IsNullOrWhiteSpace(confPath)) throw new Exception("Mirror configs path not set");
 
         // Load configs from fs
         List<ConfigInfo> confs;
@@ -54,10 +51,7 @@ public class StateStore : IStateStore
         // 1. remove deleted configs
         foreach (var item in currentMirrorItems)
         {
-            if (confs.Any(x => x.Id == item.Key))
-            {
-                continue;
-            }
+            if (confs.Any(x => x.Id == item.Key)) continue;
 
             currentMirrorItems.Remove(item.Key);
         }
@@ -65,15 +59,12 @@ public class StateStore : IStateStore
         // 2. add new configs to memory and db
         foreach (var conf in confs)
         {
-            if (currentMirrorItems.Any(x => x.Key == conf.Id))
-            {
-                continue;
-            }
+            if (currentMirrorItems.Any(x => x.Key == conf.Id)) continue;
 
             var newInfo = new MirrorItemInfo(conf)
             {
                 Status = MirrorStatus.Unknown,
-                LastSyncAt = DateTime.MinValue
+                LastSyncAt = DateTimeConstants.UnixEpoch
             };
             var savedInfo = savedInfos.FirstOrDefault(x => x.Id == conf.Id);
             if (savedInfo != null)
@@ -88,7 +79,7 @@ public class StateStore : IStateStore
                 {
                     Id = conf.Id,
                     Status = MirrorStatus.Unknown,
-                    LastSyncAt = DateTime.MinValue
+                    LastSyncAt = DateTimeConstants.UnixEpoch
                 });
             }
 
@@ -115,13 +106,16 @@ public class StateStore : IStateStore
         return _mirrorItems.ToDictionary(kv => kv.Key, kv => new MirrorItemInfo(kv.Value));
     }
 
+    public MirrorItemInfo? GetMirrorItemInfoById(string id)
+    {
+        using var _ = new ScopeReadLock(_rwLock);
+        return _mirrorItems.TryGetValue(id, out var info) ? new MirrorItemInfo(info) : null;
+    }
+
     public void SetMirrorInfo(SavedInfo info)
     {
         var item = _mirrorItems.FirstOrDefault(x => x.Key == info.Id);
-        if (item.Key == null)
-        {
-            return;
-        }
+        if (item.Key == null) return;
 
         using (var guard = new ScopeWriteLock(_rwLock))
         {

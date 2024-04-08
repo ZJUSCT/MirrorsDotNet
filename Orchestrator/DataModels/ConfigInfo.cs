@@ -23,12 +23,6 @@ public record MirrorInfoRaw(I18NField Name, I18NField Description, string Type, 
 
 public class MirrorInfo
 {
-    public required I18NField Name { get; init; }
-    public required I18NField Description { get; init; }
-    public SyncType Type { get; init; }
-
-    public required string Upstream { get; init; }
-
     public MirrorInfo()
     {
     }
@@ -47,6 +41,12 @@ public class MirrorInfo
         };
         Upstream = raw.Upstream;
     }
+
+    public required I18NField Name { get; init; }
+    public required I18NField Description { get; init; }
+    public SyncType Type { get; init; }
+
+    public required string Upstream { get; init; }
 }
 
 public record VolumeInfo(string Src, string Dst, bool ReadOnly);
@@ -63,15 +63,6 @@ public record SyncInfoRaw(
 
 public class SyncInfo
 {
-    public required string JobName { get; init; }
-    public TimeSpan Interval { get; init; }
-    public TimeSpan Timeout { get; init; }
-    public required string Image { get; init; }
-    public PullStrategy Pull { get; init; }
-    public required List<VolumeInfo> Volumes { get; init; }
-    public required List<string> Command { get; init; }
-    public required List<string> Environments { get; init; }
-
     public SyncInfo()
     {
     }
@@ -94,16 +85,21 @@ public class SyncInfo
         Command = raw.Command;
         Environments = raw.Environments;
     }
+
+    public required string JobName { get; init; }
+    public TimeSpan Interval { get; init; }
+    public TimeSpan Timeout { get; init; }
+    public required string Image { get; init; }
+    public PullStrategy Pull { get; init; }
+    public required List<VolumeInfo> Volumes { get; init; }
+    public required List<string> Command { get; init; }
+    public required List<string> Environments { get; init; }
 }
 
 public record ConfigInfoRaw(string Id, MirrorInfoRaw Info, SyncInfoRaw? Sync);
 
 public class ConfigInfo
 {
-    public required string Id { get; init; }
-    public required MirrorInfo Info { get; init; }
-    public SyncInfo? Sync { get; init; }
-
     public ConfigInfo()
     {
     }
@@ -113,10 +109,7 @@ public class ConfigInfo
     {
         Id = rawConf.Id;
         Info = new MirrorInfo(rawConf.Info);
-        if (rawConf.Sync != null)
-        {
-            Sync = new SyncInfo(rawConf.Sync);
-        }
+        if (rawConf.Sync != null) Sync = new SyncInfo(rawConf.Sync);
     }
 
     [SetsRequiredMembers]
@@ -126,4 +119,8 @@ public class ConfigInfo
         Info = conf.Info;
         Sync = conf.Sync;
     }
+
+    public required string Id { get; init; }
+    public required MirrorInfo Info { get; init; }
+    public SyncInfo? Sync { get; init; }
 }

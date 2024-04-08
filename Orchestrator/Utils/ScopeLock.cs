@@ -7,9 +7,9 @@ public struct ScopeReadLock : IDisposable
     public ScopeReadLock(ReaderWriterLockSlim rwLock)
     {
         _lock = rwLock;
-        _lock.EnterReadLock();    
+        _lock.EnterReadLock();
     }
-    
+
     public void Dispose()
     {
         _lock.ExitReadLock();
@@ -23,9 +23,9 @@ public struct ScopeWriteLock : IDisposable
     public ScopeWriteLock(ReaderWriterLockSlim rwLock)
     {
         _lock = rwLock;
-        _lock.EnterWriteLock();    
+        _lock.EnterWriteLock();
     }
-    
+
     public void Dispose()
     {
         _lock.ExitWriteLock();

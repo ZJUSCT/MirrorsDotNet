@@ -6,7 +6,8 @@ namespace Orchestrator.Tests;
 
 public class TestJobQueue
 {
-    private MirrorItemInfo GenMirrorItem(string id, TimeSpan interval, TimeSpan timeout, MirrorStatus status, DateTime lastSyncAt)
+    private MirrorItemInfo GenMirrorItem(string id, TimeSpan interval, TimeSpan timeout, MirrorStatus status,
+        DateTime lastSyncAt)
     {
         I18NField i18N = new("en", "zh");
         var info = new MirrorInfo { Name = i18N, Description = i18N, Type = SyncType.Sync, Upstream = "" };
@@ -18,17 +19,15 @@ public class TestJobQueue
                     Image = "", Pull = PullStrategy.Always, Volumes = [], Command = [], Environments = []
                 }
             })
-            { Status = status, LastSyncAt = lastSyncAt, };
+            { Status = status, LastSyncAt = lastSyncAt };
     }
 
     private void PrintMirrorStatus(IStateStore store)
     {
         foreach (var kv in store.GetMirrorItemInfos())
-        {
             Console.WriteLine($"{kv.Key}: {kv.Value.Status} LSA:{kv.Value.LastSyncAt.ToShortTimeString()}");
-        }
     }
-    
+
     [SetUp]
     public void Setup()
     {
@@ -39,18 +38,21 @@ public class TestJobQueue
     {
         List<MirrorItemInfo> itemInfos =
         [
-            GenMirrorItem("foo1", TimeSpan.FromSeconds(2), TimeSpan.FromSeconds(1), MirrorStatus.Unknown, DateTime.MinValue),
-            GenMirrorItem("foo2", TimeSpan.FromSeconds(2), TimeSpan.FromSeconds(1), MirrorStatus.Unknown, DateTime.MinValue),
-            GenMirrorItem("foo3", TimeSpan.FromSeconds(2), TimeSpan.FromSeconds(1), MirrorStatus.Unknown, DateTime.MinValue),
+            GenMirrorItem("foo1", TimeSpan.FromSeconds(2), TimeSpan.FromSeconds(1), MirrorStatus.Unknown,
+                DateTime.MinValue),
+            GenMirrorItem("foo2", TimeSpan.FromSeconds(2), TimeSpan.FromSeconds(1), MirrorStatus.Unknown,
+                DateTime.MinValue),
+            GenMirrorItem("foo3", TimeSpan.FromSeconds(2), TimeSpan.FromSeconds(1), MirrorStatus.Unknown,
+                DateTime.MinValue)
         ];
         var conf = new MockConfiguration();
         var logger = new MockLogger<JobQueue>();
         var stateStore = new MockStateStore(itemInfos);
         var jobQueue = new JobQueue(conf, logger, stateStore);
         jobQueue.CoolDown = TimeSpan.FromSeconds(1);
-        
+
         PrintMirrorStatus(stateStore);
-        
+
         logger.LogInformation("Get All jobs");
         List<SyncJob> jobs = [];
         bool gotJob;
@@ -62,23 +64,21 @@ public class TestJobQueue
             jobs.Add(job!);
             logger.LogInformation("Got job {jobId} for {mirrorId}", job!.Guid, job.MirrorItem.Config.Id);
         }
+
         gotJob = jobQueue.TryGetNewJob(out _);
         Assert.That(gotJob, Is.False);
         PrintMirrorStatus(stateStore);
-        
+
         logger.LogInformation("Finish All jobs");
-        foreach (var j in jobs)
-        {
-            jobQueue.UpdateJobStatus(j.Guid, MirrorStatus.Succeeded);
-        }
+        foreach (var j in jobs) jobQueue.UpdateJobStatus(j.Guid, MirrorStatus.Succeeded);
         PrintMirrorStatus(stateStore);
-        
+
         Thread.Sleep(1000);
         logger.LogInformation("Before interval, no job should be available");
         // should get no job here
         gotJob = jobQueue.TryGetNewJob(out _);
         Assert.That(gotJob, Is.False);
-        
+
         Thread.Sleep(1100);
         // get a job and fail it
         logger.LogInformation("Get a job and fail it");
@@ -89,18 +89,18 @@ public class TestJobQueue
         logger.LogInformation("Fail the job");
         jobQueue.UpdateJobStatus(job.Guid, MirrorStatus.Failed);
         PrintMirrorStatus(stateStore);
-        
+
         // make a lost job
         logger.LogInformation("Get a job");
         gotJob = jobQueue.TryGetNewJob(out job);
         logger.LogInformation("Got job {jobId} for {mirrorId}", job!.Guid, job.MirrorItem.Config.Id);
         Assert.That(gotJob, Is.True);
         PrintMirrorStatus(stateStore);
-        
+
         Thread.Sleep(2100);
         logger.LogInformation("Made it lost");
         PrintMirrorStatus(stateStore);
-        
+
         // finish all jobs
         jobs.Clear();
         for (var i = 0; i < 3; ++i)
@@ -110,16 +110,14 @@ public class TestJobQueue
             jobs.Add(job!);
             logger.LogInformation("Got job {jobId} for {mirrorId}", job!.Guid, job.MirrorItem.Config.Id);
         }
-        foreach (var j in jobs)
-        {
-            jobQueue.UpdateJobStatus(j.Guid, MirrorStatus.Succeeded);
-        }
+
+        foreach (var j in jobs) jobQueue.UpdateJobStatus(j.Guid, MirrorStatus.Succeeded);
         PrintMirrorStatus(stateStore);
-        
+
         // should get no job here
         gotJob = jobQueue.TryGetNewJob(out _);
         Assert.That(gotJob, Is.False);
-        
+
         Assert.Pass();
     }
 
@@ -128,18 +126,21 @@ public class TestJobQueue
     {
         List<MirrorItemInfo> itemInfos =
         [
-            GenMirrorItem("foo1", TimeSpan.FromSeconds(2), TimeSpan.FromSeconds(1), MirrorStatus.Unknown, DateTime.MinValue),
-            GenMirrorItem("foo2", TimeSpan.FromSeconds(2), TimeSpan.FromSeconds(1), MirrorStatus.Unknown, DateTime.MinValue),
-            GenMirrorItem("foo3", TimeSpan.FromSeconds(2), TimeSpan.FromSeconds(1), MirrorStatus.Unknown, DateTime.MinValue),
+            GenMirrorItem("foo1", TimeSpan.FromSeconds(2), TimeSpan.FromSeconds(1), MirrorStatus.Unknown,
+                DateTime.MinValue),
+            GenMirrorItem("foo2", TimeSpan.FromSeconds(2), TimeSpan.FromSeconds(1), MirrorStatus.Unknown,
+                DateTime.MinValue),
+            GenMirrorItem("foo3", TimeSpan.FromSeconds(2), TimeSpan.FromSeconds(1), MirrorStatus.Unknown,
+                DateTime.MinValue)
         ];
         var conf = new MockConfiguration();
         var logger = new MockLogger<JobQueue>();
         var stateStore = new MockStateStore(itemInfos);
         var jobQueue = new JobQueue(conf, logger, stateStore);
         jobQueue.CoolDown = TimeSpan.FromSeconds(1);
-        
+
         PrintMirrorStatus(stateStore);
- 
+
         logger.LogInformation("Get All jobs");
         List<SyncJob> jobs = [];
         bool gotJob;
@@ -151,22 +152,21 @@ public class TestJobQueue
             jobs.Add(job!);
             logger.LogInformation("Got job {jobId} for {mirrorId}", job!.Guid, job.MirrorItem.Config.Id);
         }
+
         gotJob = jobQueue.TryGetNewJob(out _);
         Assert.That(gotJob, Is.False);
         PrintMirrorStatus(stateStore);
-        
+
         logger.LogInformation("remove foo1, add bar");
-        itemInfos[0] = GenMirrorItem("bar", TimeSpan.FromSeconds(2), TimeSpan.FromSeconds(1), MirrorStatus.Unknown, DateTime.MinValue);
+        itemInfos[0] = GenMirrorItem("bar", TimeSpan.FromSeconds(2), TimeSpan.FromSeconds(1), MirrorStatus.Unknown,
+            DateTime.MinValue);
         stateStore.SetMirrorItems(itemInfos);
         jobQueue.Reload();
-        
+
         logger.LogInformation("Finish All jobs");
-        foreach (var j in jobs)
-        {
-            jobQueue.UpdateJobStatus(j.Guid, MirrorStatus.Succeeded);
-        }
+        foreach (var j in jobs) jobQueue.UpdateJobStatus(j.Guid, MirrorStatus.Succeeded);
         PrintMirrorStatus(stateStore);
-        
+
         Thread.Sleep(2100);
         logger.LogInformation("Get All jobs");
         for (var i = 0; i < 3; ++i)
@@ -176,6 +176,7 @@ public class TestJobQueue
             jobs.Add(job!);
             logger.LogInformation("Got job {jobId} for {mirrorId}", job!.Guid, job.MirrorItem.Config.Id);
         }
+
         gotJob = jobQueue.TryGetNewJob(out _);
         Assert.That(gotJob, Is.False);
         PrintMirrorStatus(stateStore);

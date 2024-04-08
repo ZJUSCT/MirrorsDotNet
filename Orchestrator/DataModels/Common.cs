@@ -6,6 +6,5 @@ public enum MirrorStatus
     Syncing,
     Failed,
     Cached,
-    ReverseProxied,
     Unknown
 }
