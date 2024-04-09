@@ -2,6 +2,10 @@ variables:
   IMAGE_TAG: $CI_REGISTRY_IMAGE:$CI_COMMIT_REF_SLUG
   IMAGE_TAG_LATEST: $CI_REGISTRY_IMAGE:latest
 
+stages:
+  - build
+  - deploy 
+
 before_script:
   - docker info
   - docker login -u $CI_DEPLOY_USER -p $CI_DEPLOY_PASSWORD $CI_REGISTRY
