@@ -28,7 +28,7 @@ deploy:
   tags:
     - dind
   only:
-    - main
+    - master
   script:
     - docker-compose up -d
 
