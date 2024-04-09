@@ -17,7 +17,7 @@ build-manager:
     - dind
   script:
     - docker pull $CI_REGISTRY/$IMAGE_TAG_LATEST || true
-    - docker build -t $IMAGE_TAG ./Orchestrator
+    - docker build --build-arg="APP_UID=$APP_UID" -t $IMAGE_TAG ./Orchestrator
     - docker tag $IMAGE_TAG $IMAGE_TAG_LATEST
     - docker push $IMAGE_TAG
     - docker push $IMAGE_TAG_LATEST
