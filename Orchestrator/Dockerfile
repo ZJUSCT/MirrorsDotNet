@@ -1,5 +1,5 @@
 FROM mcr.microsoft.com/dotnet/aspnet:8.0 AS base
-USER ${APP_UID}
+USER 1897
 WORKDIR /app
 EXPOSE 8080
 EXPOSE 8081
