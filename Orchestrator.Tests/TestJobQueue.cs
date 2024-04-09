@@ -10,12 +10,12 @@ public class TestJobQueue
         DateTime lastSyncAt)
     {
         I18NField i18N = new("en", "zh");
-        var info = new MirrorInfo { Name = i18N, Description = i18N, Type = SyncType.Sync, Upstream = "" };
+        var info = new MirrorInfo { Name = i18N, Description = i18N, Type = SyncType.Sync, Upstream = "", Url = "" };
         return new MirrorItemInfo(new ConfigInfo
             {
                 Id = id, Info = info, Sync = new SyncInfo
                 {
-                    JobName = $"job-{id}", Interval = interval, Timeout = timeout,
+                    JobName = $"job-{id}", Interval = new IntervalInfo(interval), Timeout = new IntervalInfo(interval),
                     Image = "", Pull = PullStrategy.Always, Volumes = [], Command = [], Environments = []
                 }
             })
@@ -59,13 +59,13 @@ public class TestJobQueue
         SyncJob? job;
         for (var i = 0; i < 3; ++i)
         {
-            gotJob = jobQueue.TryGetNewJob(out job);
+            gotJob = jobQueue.TryGetNewJob("", out job);
             Assert.That(gotJob, Is.True);
             jobs.Add(job!);
             logger.LogInformation("Got job {jobId} for {mirrorId}", job!.Guid, job.MirrorItem.Config.Id);
         }
 
-        gotJob = jobQueue.TryGetNewJob(out _);
+        gotJob = jobQueue.TryGetNewJob("", out _);
         Assert.That(gotJob, Is.False);
         PrintMirrorStatus(stateStore);
 
@@ -76,13 +76,13 @@ public class TestJobQueue
         Thread.Sleep(1000);
         logger.LogInformation("Before interval, no job should be available");
         // should get no job here
-        gotJob = jobQueue.TryGetNewJob(out _);
+        gotJob = jobQueue.TryGetNewJob("", out _);
         Assert.That(gotJob, Is.False);
 
         Thread.Sleep(1100);
         // get a job and fail it
         logger.LogInformation("Get a job and fail it");
-        gotJob = jobQueue.TryGetNewJob(out job);
+        gotJob = jobQueue.TryGetNewJob("", out job);
         Assert.That(gotJob, Is.True);
         logger.LogInformation("Got job {jobId} for {mirrorId}", job!.Guid, job.MirrorItem.Config.Id);
         PrintMirrorStatus(stateStore);
@@ -92,7 +92,7 @@ public class TestJobQueue
 
         // make a lost job
         logger.LogInformation("Get a job");
-        gotJob = jobQueue.TryGetNewJob(out job);
+        gotJob = jobQueue.TryGetNewJob("", out job);
         logger.LogInformation("Got job {jobId} for {mirrorId}", job!.Guid, job.MirrorItem.Config.Id);
         Assert.That(gotJob, Is.True);
         PrintMirrorStatus(stateStore);
@@ -105,7 +105,7 @@ public class TestJobQueue
         jobs.Clear();
         for (var i = 0; i < 3; ++i)
         {
-            gotJob = jobQueue.TryGetNewJob(out job);
+            gotJob = jobQueue.TryGetNewJob("", out job);
             Assert.That(gotJob, Is.True);
             jobs.Add(job!);
             logger.LogInformation("Got job {jobId} for {mirrorId}", job!.Guid, job.MirrorItem.Config.Id);
@@ -115,7 +115,7 @@ public class TestJobQueue
         PrintMirrorStatus(stateStore);
 
         // should get no job here
-        gotJob = jobQueue.TryGetNewJob(out _);
+        gotJob = jobQueue.TryGetNewJob("", out _);
         Assert.That(gotJob, Is.False);
 
         Assert.Pass();
@@ -147,13 +147,13 @@ public class TestJobQueue
         SyncJob? job;
         for (var i = 0; i < 3; ++i)
         {
-            gotJob = jobQueue.TryGetNewJob(out job);
+            gotJob = jobQueue.TryGetNewJob("", out job);
             Assert.That(gotJob, Is.True);
             jobs.Add(job!);
             logger.LogInformation("Got job {jobId} for {mirrorId}", job!.Guid, job.MirrorItem.Config.Id);
         }
 
-        gotJob = jobQueue.TryGetNewJob(out _);
+        gotJob = jobQueue.TryGetNewJob("", out _);
         Assert.That(gotJob, Is.False);
         PrintMirrorStatus(stateStore);
 
@@ -171,13 +171,13 @@ public class TestJobQueue
         logger.LogInformation("Get All jobs");
         for (var i = 0; i < 3; ++i)
         {
-            gotJob = jobQueue.TryGetNewJob(out job);
+            gotJob = jobQueue.TryGetNewJob("", out job);
             Assert.That(gotJob, Is.True);
             jobs.Add(job!);
             logger.LogInformation("Got job {jobId} for {mirrorId}", job!.Guid, job.MirrorItem.Config.Id);
         }
 
-        gotJob = jobQueue.TryGetNewJob(out _);
+        gotJob = jobQueue.TryGetNewJob("", out _);
         Assert.That(gotJob, Is.False);
         PrintMirrorStatus(stateStore);
     }

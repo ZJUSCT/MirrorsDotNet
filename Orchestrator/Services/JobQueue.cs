@@ -13,6 +13,7 @@ public class JobQueue
     private readonly ReaderWriterLockSlim _rwLock = new();
     private readonly IStateStore _stateStore;
     private readonly ConcurrentDictionary<Guid, SyncJob> _syncingDict = new();
+    private readonly ConcurrentDictionary<string, byte> _forceRefreshDict = new();
 
     public JobQueue(IConfiguration conf, ILogger<JobQueue> log, IStateStore stateStore)
     {
@@ -31,7 +32,7 @@ public class JobQueue
         var syncJobs = _stateStore.GetMirrorItemInfos()
             .Select(x => x.Value)
             .Where(x => x.Config.Info.Type == SyncType.Sync)
-            .Select(x => new SyncJob(x, x.LastSyncAt.Add(x.Config.Sync!.Interval)));
+            .Select(x => new SyncJob(x, x.Config.Sync!.Interval.GetNextSyncTime(x.LastSyncAt)));
 
         using var guard = new ScopeWriteLock(_rwLock);
         _pendingQueue.Clear();
@@ -51,9 +52,17 @@ public class JobQueue
         return _stateStore.GetMirrorItemInfoById(id);
     }
 
-    public (int, int) GetQueueStatus()
+    public (int pendingCount, int syncingCount) GetQueueStatus()
     {
         return (_pendingQueue.Count, _syncingDict.Count);
+    }
+    
+    public (List<SyncJob> pendingJobs, List<SyncJob> syncingJobs) GetJobs()
+    {
+        using var _ = new ScopeReadLock(_rwLock);
+        var pendingJobs = _pendingQueue.ToList();
+        var syncingJobs = _syncingDict.Values.ToList();
+        return (pendingJobs, syncingJobs);
     }
 
     private void CheckLostJobs()
@@ -64,11 +73,15 @@ public class JobQueue
         using (var guard = new ScopeWriteLock(_rwLock))
         {
             foreach (var (guid, job) in _syncingDict)
-                if (job.TaskStartedAt.Add(job.MirrorItem.Config.Sync!.Timeout).Add(CoolDown) < DateTime.Now)
+            {
+                var taskStartedAt = job.TaskStartedAt;
+                var timeout = job.MirrorItem.Config.Sync!.Timeout.IntervalFree!.Value;
+                if (taskStartedAt.Add(timeout).Add(CoolDown) < DateTime.Now)
                 {
                     jobs.Add(job);
                     _syncingDict.Remove(guid, out _);
                 }
+            }
         }
 
         foreach (var job in jobs)
@@ -88,7 +101,19 @@ public class JobQueue
         }
     }
 
-    public bool TryGetNewJob([MaybeNullWhen(false)] out SyncJob job)
+    public void ForceRefresh(string mirrorId)
+    {
+        if (string.IsNullOrWhiteSpace(mirrorId))
+        {
+            _forceRefreshDict.Clear();
+        }
+        else
+        {
+            _forceRefreshDict[mirrorId] = 0;
+        }
+    }
+    
+    public bool TryGetNewJob(in string workerId, [MaybeNullWhen(false)] out SyncJob job)
     {
         // worker should report a fail job if time exceeds limit
         // so we assume worker encountered an error if it takes too long
@@ -102,14 +127,19 @@ public class JobQueue
         // is sync interval passed?
         if (job!.TaskShouldStartAt > DateTime.Now)
         {
-            var x = DateTime.Now;
-            // enqueue the item again
-            _pendingQueue.Enqueue(job);
-            return false;
+            if (!_forceRefreshDict.TryRemove(job.MirrorItem.Config.Id, out var _))
+            {
+                // enqueue the item again
+                _pendingQueue.Enqueue(job);
+                return false;
+            }
+
+            job.TaskShouldStartAt = DateTime.Now;
         }
 
-        _syncingDict[job.Guid] = job;
         job.TaskStartedAt = DateTime.Now;
+        job.WorkerId = workerId;
+        _syncingDict[job.Guid] = job;
         _stateStore.SetMirrorInfo(new SavedInfo
         {
             Id = job.MirrorItem.Config.Id,
@@ -132,6 +162,7 @@ public class JobQueue
         if (status != MirrorStatus.Failed && status != MirrorStatus.Succeeded)
         {
             _log.LogWarning("Unsupported job status: {status}", status);
+            _syncingDict[guid] = job;
             return;
         }
 

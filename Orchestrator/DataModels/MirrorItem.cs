@@ -16,7 +16,7 @@ public class MirrorItemInfo
         Size = info.Size;
     }
 
-    public ConfigInfo Config { get; init; }
+    public ConfigInfo Config { get; }
     public MirrorStatus Status { get; set; }
     public DateTime LastSyncAt { get; set; }
     public ulong Size { get; set; }
@@ -25,19 +25,21 @@ public class MirrorItemInfo
     {
         return Config.Sync == null
             ? DateTimeConstants.UnixEpoch
-            : LastSyncAt.Add(Config.Sync.Interval);
+            : Config.Sync.Interval.GetNextSyncTime(LastSyncAt);
     }
 }
 
-public class SyncJob(MirrorItemInfo mirrorItemInfo, DateTime shouldStartAt)
+public class SyncJob(MirrorItemInfo mirrorItemInfo, DateTime shouldStartAt, string workerId = "")
 {
-    public readonly Guid Guid = Guid.NewGuid();
-    public readonly MirrorItemInfo MirrorItem = mirrorItemInfo;
-    public bool Stale = false;
-    public DateTime TaskShouldStartAt = shouldStartAt;
-    public DateTime TaskStartedAt = DateTimeConstants.UnixEpoch;
+    public Guid Guid { get; } = Guid.NewGuid();
+    public MirrorItemInfo MirrorItem { get; } = mirrorItemInfo;
+    public bool Stale { get; set; } = false;
+    public DateTime TaskShouldStartAt { get; set; } = shouldStartAt;
+    public DateTime TaskStartedAt { get; set; } = DateTimeConstants.UnixEpoch;
+    public string WorkerId { get; set; } = workerId;
 
-    public SyncJob(SyncJob job) : this(job.MirrorItem, DateTime.Now.Add(job.MirrorItem.Config.Sync!.Interval))
+    public SyncJob(SyncJob job) : this(job.MirrorItem,
+        job.MirrorItem.Config.Sync!.Interval.GetNextSyncTime(DateTime.Now))
     {
     }
 }

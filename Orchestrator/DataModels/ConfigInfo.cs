@@ -1,4 +1,6 @@
 ﻿using System.Diagnostics.CodeAnalysis;
+using System.Text.Json.Serialization;
+using System.Text.RegularExpressions;
 
 namespace Orchestrator.DataModels;
 
@@ -17,9 +19,17 @@ public enum PullStrategy
     Never
 }
 
+public enum IntervalType
+{
+    Free,
+    Fixed
+}
+
+[method: JsonConstructor]
 public record I18NField(string En, string Zh);
 
-public record MirrorInfoRaw(I18NField Name, I18NField Description, string Type, string Upstream);
+[method: JsonConstructor]
+public record MirrorInfoRaw(I18NField Name, I18NField Description, string Type, string Upstream, string Url);
 
 public class MirrorInfo
 {
@@ -40,6 +50,7 @@ public class MirrorInfo
             _ => SyncType.Other
         };
         Upstream = raw.Upstream;
+        Url = raw.Url;
     }
 
     public required I18NField Name { get; init; }
@@ -47,13 +58,97 @@ public class MirrorInfo
     public SyncType Type { get; init; }
 
     public required string Upstream { get; init; }
+    public required string Url { get; init; }
 }
 
+[method: JsonConstructor]
 public record VolumeInfo(string Src, string Dst, bool ReadOnly);
 
+public record IntervalInfoRaw(string Type, string Value);
+
+public partial class IntervalInfo
+{
+    [GeneratedRegex(@"(\d+)s")]
+    private static partial Regex SecRegex();
+
+    [GeneratedRegex(@"(\d+)m")]
+    private static partial Regex MinRegex();
+
+    [GeneratedRegex(@"(\d+)h")]
+    private static partial Regex HourRegex();
+
+    [GeneratedRegex(@"(\d+)d")]
+    private static partial Regex DayRegex();
+
+    [GeneratedRegex(@"(\d+)w")]
+    private static partial Regex WeekRegex();
+
+    [GeneratedRegex(@"(\d+)M")]
+    private static partial Regex MonthRegex();
+
+    [GeneratedRegex(@"(\d+)y")]
+    private static partial Regex YearRegex();
+
+    private static readonly List<(string Abbr, Regex Regex, TimeSpan Duration)> _durationMap =
+    [
+        ("s", SecRegex(), TimeSpan.FromSeconds(1)),
+        ("m", MinRegex(), TimeSpan.FromMinutes(1)),
+        ("h", HourRegex(), TimeSpan.FromHours(1)),
+        ("d", DayRegex(), TimeSpan.FromDays(1)),
+        ("w", WeekRegex(), TimeSpan.FromDays(7)),
+        ("M", MonthRegex(), TimeSpan.FromDays(30)),
+        ("y", YearRegex(), TimeSpan.FromDays(365))
+    ];
+
+    public IntervalType Type { get; init; }
+    public TimeSpan? IntervalFree { get; }
+
+    public IntervalInfo(string freeInterval)
+    {
+        Type = IntervalType.Free;
+        IntervalFree = _durationMap
+            .Where(x => freeInterval.Contains(x.Abbr))
+            .Select(x => x.Duration * int.Parse(x.Regex.Match(freeInterval).Groups[1].Value))
+            .Aggregate((acc, sum) => acc + sum);
+    }
+
+    public IntervalInfo(TimeSpan freeInterval)
+    {
+        Type = IntervalType.Free;
+        IntervalFree = freeInterval;
+    }
+    
+    public IntervalInfo(IntervalInfoRaw raw)
+    {
+        if (raw.Type == "free")
+        {
+            Type = IntervalType.Free;
+            IntervalFree = _durationMap
+                .Where(x => raw.Value.Contains(x.Abbr))
+                .Select(x => x.Duration * int.Parse(x.Regex.Match(raw.Value).Groups[1].Value))
+                .Aggregate((acc, sum) => acc + sum);
+        }
+        else
+        {
+            throw new NotImplementedException();
+        }
+    }
+
+    public DateTime GetNextSyncTime(DateTime lastSyncAt)
+    {
+        if (Type == IntervalType.Free)
+        {
+            return lastSyncAt.Add(IntervalFree!.Value);
+        }
+
+        throw new NotImplementedException();
+    }
+}
+
+[method: JsonConstructor]
 public record SyncInfoRaw(
     string JobName,
-    string Interval,
+    IntervalInfoRaw Interval,
     string Timeout,
     string Image,
     string Pull,
@@ -71,8 +166,8 @@ public class SyncInfo
     public SyncInfo(SyncInfoRaw raw)
     {
         JobName = raw.JobName;
-        Interval = TimeSpan.Parse(raw.Interval);
-        Timeout = TimeSpan.Parse(raw.Timeout);
+        Interval = new IntervalInfo(raw.Interval);
+        Timeout = new IntervalInfo(raw.Timeout);
         Image = raw.Image;
         Pull = raw.Pull switch
         {
@@ -87,8 +182,8 @@ public class SyncInfo
     }
 
     public required string JobName { get; init; }
-    public TimeSpan Interval { get; init; }
-    public TimeSpan Timeout { get; init; }
+    public required IntervalInfo Interval { get; init; }
+    public required IntervalInfo Timeout { get; init; }
     public required string Image { get; init; }
     public PullStrategy Pull { get; init; }
     public required List<VolumeInfo> Volumes { get; init; }
@@ -96,6 +191,7 @@ public class SyncInfo
     public required List<string> Environments { get; init; }
 }
 
+[method: JsonConstructor]
 public record ConfigInfoRaw(string Id, MirrorInfoRaw Info, SyncInfoRaw? Sync);
 
 public class ConfigInfo

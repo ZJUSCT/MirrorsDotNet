@@ -9,16 +9,16 @@ namespace Orchestrator.Services;
 public class StateStore : IStateStore
 {
     private readonly IConfiguration _conf;
-    private readonly OrchContext _db;
     private readonly ILogger<StateStore> _log;
+    private readonly IServiceProvider _sp;
     private Dictionary<string, MirrorItemInfo> _mirrorItems = [];
     private readonly ReaderWriterLockSlim _rwLock = new();
 
-    public StateStore(IConfiguration conf, ILogger<StateStore> log, OrchContext db)
+    public StateStore(IConfiguration conf, ILogger<StateStore> log, IServiceProvider sp)
     {
         _conf = conf;
         _log = log;
-        _db = db;
+        _sp = sp;
         Reload();
     }
 
@@ -34,7 +34,7 @@ public class StateStore : IStateStore
             confs = Directory
                 .EnumerateFiles(confPath!, "*.json")
                 .Select(path => File.ReadAllText(path, Encoding.UTF8))
-                .Select(content => JsonSerializer.Deserialize<ConfigInfoRaw>(content))
+                .Select(content => JsonSerializer.Deserialize<ConfigInfoRaw>(content, JsonUtil.DefaultOptions))
                 .Select(r => new ConfigInfo(r!))
                 .ToList();
         }
@@ -45,7 +45,9 @@ public class StateStore : IStateStore
         }
 
         // Load states from db
-        var savedInfos = _db.SavedInfos.AsNoTracking().ToList();
+        using var scope = _sp.CreateScope();
+        var db = scope.ServiceProvider.GetRequiredService<OrchDbContext>();
+        var savedInfos = db.SavedInfos.AsNoTracking().ToList();
         var currentMirrorItems = new Dictionary<string, MirrorItemInfo>(_mirrorItems);
 
         // 1. remove deleted configs
@@ -75,7 +77,7 @@ public class StateStore : IStateStore
             }
             else
             {
-                _db.SavedInfos.Add(new SavedInfo
+                db.SavedInfos.Add(new SavedInfo
                 {
                     Id = conf.Id,
                     Status = MirrorStatus.Unknown,
@@ -88,7 +90,7 @@ public class StateStore : IStateStore
 
         try
         {
-            _db.SaveChanges();
+            db.SaveChanges();
         }
         catch (Exception e)
         {
@@ -124,7 +126,9 @@ public class StateStore : IStateStore
             item.Value.Size = info.Size;
         }
 
-        _db.SavedInfos.Update(new SavedInfo
+        using var scope = _sp.CreateScope();
+        var db = scope.ServiceProvider.GetRequiredService<OrchDbContext>();
+        db.SavedInfos.Update(new SavedInfo
         {
             Id = info.Id,
             Status = info.Status,
@@ -134,7 +138,7 @@ public class StateStore : IStateStore
 
         try
         {
-            _db.SaveChanges();
+            db.SaveChanges();
         }
         catch (Exception e)
         {

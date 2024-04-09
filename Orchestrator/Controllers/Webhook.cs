@@ -6,13 +6,11 @@ namespace Orchestrator.Controllers;
 
 [ApiController]
 [Route("/webhook")]
-public class WebHook(IConfiguration conf, ILogger<WebHook> log, JobQueue jobQueue) : CustomControllerBase(conf)
+public class Webhook(IConfiguration conf, ILogger<Webhook> log, JobQueue jobQueue) : CustomControllerBase(conf)
 {
-    private bool CheckWebhookToken()
-    {
-        return Request.Headers.TryGetValue("X-Webhook-Token", out var values)
-               && values.Contains(conf["WebhookToken"]);
-    }
+    private bool CheckWebhookToken() =>
+        Request.Headers.TryGetValue("X-Webhook-Token", out var values)
+        && values.Contains(Conf["WebhookToken"]);
 
     [HttpPost("reload")]
     public IActionResult Reload()
@@ -23,6 +21,7 @@ public class WebHook(IConfiguration conf, ILogger<WebHook> log, JobQueue jobQueu
             return Unauthorized(null);
         }
 
+        jobQueue.Reload();
         var mirrors = jobQueue.GetMirrorItems().Select(x => x.Value);
         var (pending, syncing) = jobQueue.GetQueueStatus();
         log.LogInformation("Configuration reloaded");

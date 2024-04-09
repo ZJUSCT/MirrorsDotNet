@@ -11,11 +11,15 @@
       "zh": "这是一个福报模块"
     },
     "type": "sync",
-    "upstream": "rsync://foo.example.com/bar/"
+    "upstream": "rsync://foo.example.com/bar/",
+    "url": "/foo"
   },
   "sync": {
     "jobName": "job-rsync-foo",
-    "interval": "4h",
+    "interval": {
+      "type": "free",
+      "value": "4h"
+    },
     "timeout": "5h",
     "image": "foo/bar:latest",
     "pull": "never",

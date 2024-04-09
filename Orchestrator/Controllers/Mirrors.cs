@@ -7,7 +7,7 @@ namespace Orchestrator.Controllers;
 
 [ApiController]
 [Route("/mirrors")]
-public class Mirrors(IConfiguration conf, JobQueue jobQueue) : CustomControllerBase(conf)
+public partial class Mirrors(IConfiguration conf, JobQueue jobQueue) : CustomControllerBase(conf)
 {
     private static string StatusToString(MirrorStatus status)
     {
@@ -30,7 +30,7 @@ public class Mirrors(IConfiguration conf, JobQueue jobQueue) : CustomControllerB
             .Select(x => new MirrorItemDto
             (
                 x.Config.Id,
-                "TODO",
+                x.Config.Info.Url,
                 x.Config.Info.Name,
                 x.Config.Info.Description,
                 x.Config.Info.Upstream,

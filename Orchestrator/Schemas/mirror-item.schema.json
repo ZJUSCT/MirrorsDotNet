@@ -5,14 +5,14 @@
   "properties": {
     "id": {
       "type": "string",
-      "description": "Unique identifier of the mirror item."
+      "description": "Unique identifier of the mirror."
     },
     "info": {
       "type": "object",
       "properties": {
         "name": {
           "type": "object",
-          "description": "User friendly name of the mirror item.",
+          "description": "User friendly name of the mirror.",
           "properties": {
             "en": {
               "type": "string"
@@ -28,7 +28,7 @@
         },
         "description": {
           "type": "object",
-          "description": "User friendly description of the mirror item.",
+          "description": "User friendly description of the mirror.",
           "properties": {
             "en": {
               "type": "string"
@@ -47,13 +47,18 @@
         },
         "upstream": {
           "type": "string"
+        },
+        "url": {
+          "type": "string",
+          "description": "URL of the mirror."
         }
       },
       "required": [
         "name",
         "description",
         "type",
-        "upstream"
+        "upstream",
+        "url"
       ]
     },
     "sync": {
@@ -64,7 +69,22 @@
           "description": "Container name of the sync job."
         },
         "interval": {
-          "type": "string",
+          "type": "object",
+          "properties": {
+            "type": {
+              "enum": ["free", "fixed"]
+            },
+            "value": {
+              "type": "string"
+            },
+            "jitter": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "type",
+            "value"
+          ],
           "description": "Interval of the sync job."
         },
         "timeout": {

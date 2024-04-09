@@ -1,6 +1,59 @@
-@Orchestrator_HostAddress = http://localhost:5203
+@UrlBase = http://localhost:5203
 
-GET {{Orchestrator_HostAddress}}/weatherforecast/
+GET {{UrlBase}}/mirrors/
 Accept: application/json
 
 ###
+
+GET {{UrlBase}}/mirrors/foo
+Accept: application/json
+
+###
+
+GET {{UrlBase}}/mirrors/bar
+Accept: application/json
+
+###
+
+POST {{UrlBase}}/webhook/reload
+Accept: application/json
+X-Webhook-Token: {{WebhookToken}}
+
+###
+
+GET {{UrlBase}}/jobs/
+Accept: application/json
+X-Worker-Token: {{WorkerToken}}
+
+###
+
+POST {{UrlBase}}/jobs/fetch
+Accept: application/json
+Content-Type: application/json
+X-Worker-Token: {{WorkerToken}}
+
+{
+  "workerId": "meow"
+}
+
+###
+
+PUT {{UrlBase}}/jobs/920792db-3bb6-4599-80bd-83cdc8e9ca69
+Accept: application/json
+Content-Type: application/json
+X-Worker-Token: {{WorkerToken}}
+
+{
+  "status": 1
+}
+
+###
+
+POST {{UrlBase}}/jobs/forceRefresh
+Accept: application/json
+Content-Type: application/json
+X-Worker-Token: {{WorkerToken}}
+
+{
+  "mirrorId":  "foo"
+}

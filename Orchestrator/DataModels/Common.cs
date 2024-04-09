@@ -3,8 +3,8 @@
 public enum MirrorStatus
 {
     Succeeded,
-    Syncing,
     Failed,
+    Syncing,
     Cached,
     Unknown
 }
