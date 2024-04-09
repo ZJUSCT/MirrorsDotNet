@@ -3,6 +3,7 @@ version: "3"
 services:
   manager:
     image: git.zju.edu.cn:5050/zju-mirror/orchestrator
+    container_name: orch
     restart: always
     ports:
       - 127.0.0.1:6003:8080
