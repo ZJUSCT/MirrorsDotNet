@@ -1,0 +1,14 @@
+version: "3"
+
+services:
+  manager:
+    image: git.zju.edu.cn:5050/zju-mirror/orchestrator
+    restart: always
+    ports:
+      - 127.0.0.1:6003:80
+    environment:
+      - TZ=Asia/Shanghai
+    volumes:
+      - /srv/orchestrator/appsettings.json:/app/appsettings.json:ro
+      - /srv/orchestrator/configs:/app/Configs:ro
+      - /srv/orchestrator/data:/app/Data
