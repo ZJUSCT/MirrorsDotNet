@@ -11,5 +11,5 @@ services:
       - TZ=Asia/Shanghai
     volumes:
       - /srv/orchestrator/appsettings.json:/app/appsettings.json:ro
-      - /srv/orchestrator/configs:/app/Configs:ro
+      - /srv/mono-conf/orch/Configs/:/app/Configs:ro
       - /srv/orchestrator/data:/app/Data
