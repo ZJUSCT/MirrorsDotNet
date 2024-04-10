@@ -24,7 +24,7 @@ public partial class Jobs(IConfiguration conf, ILogger<Jobs> log, JobQueue jobQu
         }
 
         var (pendingJobs, syncingJobs) = jobQueue.GetJobs();
-        return Ok(pendingJobs[0]);
+        return Ok(new GetJobsRes(pendingJobs, syncingJobs));
     }
 
     [HttpPost("fetch")]
