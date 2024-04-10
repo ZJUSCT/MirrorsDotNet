@@ -65,7 +65,7 @@ public class StateStore : IStateStore
 
             var newInfo = new MirrorItemInfo(conf)
             {
-                Status = MirrorStatus.Unknown,
+                Status = conf.Info.Type == SyncType.Cached ? MirrorStatus.Cached : MirrorStatus.Unknown,
                 LastSyncAt = DateTimeConstants.UnixEpoch
             };
             var savedInfo = savedInfos.FirstOrDefault(x => x.Id == conf.Id);
