@@ -50,6 +50,9 @@ public partial class Mirrors(IConfiguration conf, JobQueue jobQueue) : CustomCon
         return mirror == null ? NotFound() : Ok(mirror);
     }
 
+    [HttpGet("lastActive")]
+    public ActionResult<long> GetLastActiveTime() => Ok(jobQueue.LastActive.ToUnixTimeSeconds());
+
     public record MirrorItemDto(
         string Id,
         string Url,

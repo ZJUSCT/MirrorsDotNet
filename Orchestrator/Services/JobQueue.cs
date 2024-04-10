@@ -14,6 +14,7 @@ public class JobQueue
     private readonly IStateStore _stateStore;
     private readonly ConcurrentDictionary<Guid, SyncJob> _syncingDict = new();
     private readonly ConcurrentDictionary<string, byte> _forceRefreshDict = new();
+    public DateTime LastActive { get; private set; } = DateTime.Now;
 
     public JobQueue(IConfiguration conf, ILogger<JobQueue> log, IStateStore stateStore)
     {
@@ -115,6 +116,7 @@ public class JobQueue
     
     public bool TryGetNewJob(in string workerId, [MaybeNullWhen(false)] out SyncJob job)
     {
+        LastActive = DateTime.Now;
         // worker should report a fail job if time exceeds limit
         // so we assume worker encountered an error if it takes too long
         CheckLostJobs();
@@ -152,6 +154,7 @@ public class JobQueue
 
     public void UpdateJobStatus(Guid guid, MirrorStatus status)
     {
+        LastActive = DateTime.Now;
         using var guard = new ScopeReadLock(_rwLock);
         if (!_syncingDict.TryRemove(guid, out var job))
         {
