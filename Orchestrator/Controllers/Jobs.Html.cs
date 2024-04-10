@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using System.Globalization;
+using Microsoft.AspNetCore.Mvc;
 using Orchestrator.DataModels;
 using Orchestrator.Utils;
 
@@ -35,8 +36,8 @@ public partial class Jobs
                     TBody(jobs.Select(x => Tr([
                         Th(x.Guid.ToString()),
                         Th(x.WorkerId),
-                        Th(x.TaskStartedAt.ToLongTimeString()),
-                        Th(x.TaskShouldStartAt.ToLongTimeString()),
+                        Th(x.TaskStartedAt.ToString(CultureInfo.InvariantCulture)),
+                        Th(x.TaskShouldStartAt.ToString(CultureInfo.InvariantCulture)),
                         Th(x.Stale.ToString()),
                         Th(x.MirrorItem.Config.Id)
                     ])).ToList())

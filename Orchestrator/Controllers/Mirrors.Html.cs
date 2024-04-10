@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using System.Globalization;
+using Microsoft.AspNetCore.Mvc;
 using Orchestrator.Utils;
 
 namespace Orchestrator.Controllers;
@@ -34,8 +35,8 @@ public partial class Mirrors
                             Td(x.Config.Info.Upstream),
                             Td(x.Size.ToString()),
                             Td(StatusToString(x.Status)),
-                            Td(x.LastSyncAt.ToLongTimeString()),
-                            Td(x.NextSyncAt().ToLongTimeString()),
+                            Td(x.LastSyncAt.ToString(CultureInfo.InvariantCulture)),
+                            Td(x.NextSyncAt().ToString(CultureInfo.InvariantCulture)),
                         ]))
                         .ToList())
                 ])
