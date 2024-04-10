@@ -43,7 +43,7 @@
           ]
         },
         "type": {
-          "enum": ["sync", "reverseProxy", "cached", "other"]
+          "enum": ["sync", "cached", "other"]
         },
         "upstream": {
           "type": "string"

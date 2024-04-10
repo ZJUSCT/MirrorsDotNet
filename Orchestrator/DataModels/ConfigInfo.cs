@@ -7,7 +7,6 @@ namespace Orchestrator.DataModels;
 public enum SyncType
 {
     Sync,
-    ReverseProxy,
     Cached,
     Other
 }
@@ -45,7 +44,6 @@ public class MirrorInfo
         Type = raw.Type switch
         {
             "sync" => SyncType.Sync,
-            "reverseProxy" => SyncType.ReverseProxy,
             "cached" => SyncType.Cached,
             _ => SyncType.Other
         };
