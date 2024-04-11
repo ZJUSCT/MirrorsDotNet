@@ -33,6 +33,7 @@ public class JobQueue
         var syncJobs = _stateStore.GetMirrorItemInfos()
             .Select(x => x.Value)
             .Where(x => x.Config.Info.Type == SyncType.Sync)
+            .OrderBy(x => x.NextSyncAt())
             .Select(x => new SyncJob(x, x.Config.Sync!.Interval.GetNextSyncTime(x.LastSyncAt)));
 
         using var guard = new ScopeWriteLock(_rwLock);
@@ -68,7 +69,7 @@ public class JobQueue
 
     private void CheckLostJobs()
     {
-        // we need to acquire an write lock here
+        // we need to acquire a write lock here
         // in case other threads will read or write the dictionary
         List<SyncJob> jobs = [];
         using (var guard = new ScopeWriteLock(_rwLock))

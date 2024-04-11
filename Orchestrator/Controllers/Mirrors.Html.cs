@@ -28,6 +28,7 @@ public partial class Mirrors
                     ]),
                     TBody(mirrors
                         .Select(kv => kv.Value)
+                        .OrderByDescending(x => x.NextSyncAt())
                         .Select(x => Tr([
                             Th(x.Config.Id),
                             Td(x.Config.Info.Url),

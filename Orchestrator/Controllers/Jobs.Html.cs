@@ -33,7 +33,7 @@ public partial class Jobs
                         Th("Stale?"),
                         Th("Mirror Item")
                     ]),
-                    TBody(jobs.Select(x => Tr([
+                    TBody(jobs.OrderBy(x => x.TaskShouldStartAt).Select(x => Tr([
                         Th(x.Guid.ToString()),
                         Th(x.WorkerId),
                         Th(x.TaskStartedAt.ToString(CultureInfo.InvariantCulture)),
