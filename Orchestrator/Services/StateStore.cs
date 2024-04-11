@@ -48,21 +48,11 @@ public class StateStore : IStateStore
         using var scope = _sp.CreateScope();
         var db = scope.ServiceProvider.GetRequiredService<OrchDbContext>();
         var savedInfos = db.SavedInfos.AsNoTracking().ToList();
-        var currentMirrorItems = new Dictionary<string, MirrorItemInfo>(_mirrorItems);
+        var itemInfos = new Dictionary<string, MirrorItemInfo>();
 
-        // 1. remove deleted configs
-        foreach (var item in currentMirrorItems)
-        {
-            if (confs.Any(x => x.Id == item.Key)) continue;
-
-            currentMirrorItems.Remove(item.Key);
-        }
-
-        // 2. add new configs to memory and db
+        // add new configs to memory and db
         foreach (var conf in confs)
         {
-            if (currentMirrorItems.Any(x => x.Key == conf.Id)) continue;
-
             var newInfo = new MirrorItemInfo(conf)
             {
                 Status = MirrorStatus.Unknown,
@@ -90,7 +80,7 @@ public class StateStore : IStateStore
                 newInfo.Status = MirrorStatus.Cached;
             }
 
-            currentMirrorItems.Add(conf.Id, newInfo);
+            itemInfos.Add(conf.Id, newInfo);
         }
 
         try
@@ -104,7 +94,7 @@ public class StateStore : IStateStore
 
         // 3. apply changes
         using var guard = new ScopeWriteLock(_rwLock);
-        _mirrorItems = currentMirrorItems;
+        _mirrorItems = itemInfos;
     }
 
     public IEnumerable<KeyValuePair<string, MirrorItemInfo>> GetMirrorItemInfos()
