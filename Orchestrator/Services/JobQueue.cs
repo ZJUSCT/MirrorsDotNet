@@ -90,11 +90,12 @@ public class JobQueue
         {
             _log.LogWarning("Job {guid}({id}) took too long, marking as failed", job.Guid,
                 job.MirrorItem.Config.Id);
+            job.MirrorItem.LastSyncAt = job.TaskStartedAt;
             _stateStore.SetMirrorInfo(new SavedInfo
             {
                 Id = job.MirrorItem.Config.Id,
                 Status = MirrorStatus.Failed,
-                LastSyncAt = job.TaskStartedAt,
+                LastSyncAt = job.MirrorItem.LastSyncAt,
                 LastSuccessAt = job.MirrorItem.LastSuccessAt,
                 Size = job.MirrorItem.Size
             });
@@ -143,6 +144,7 @@ public class JobQueue
 
         job.TaskStartedAt = DateTime.Now;
         job.WorkerId = workerId;
+        job.MirrorItem.LastSyncAt = DateTime.Now;
         _syncingDict[job.Guid] = job;
         _stateStore.SetMirrorInfo(new SavedInfo
         {
@@ -183,13 +185,13 @@ public class JobQueue
             });
         else // if (status == MirrorStatus.Succeeded) 
         {
-            var now = DateTime.Now;
+            job.MirrorItem.LastSuccessAt = DateTime.Now;
             _stateStore.SetMirrorInfo(new SavedInfo
             {
                 Id = job.MirrorItem.Config.Id,
                 Status = status,
-                LastSyncAt = now,
-                LastSuccessAt = now,
+                LastSyncAt = job.MirrorItem.LastSyncAt,
+                LastSuccessAt = job.MirrorItem.LastSuccessAt,
                 Size = job.MirrorItem.Size
             });
         }

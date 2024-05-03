@@ -11,14 +11,13 @@ namespace Orchestrator.Controllers;
 [Produces("application/json")]
 public class MirrorZInfo(IConfiguration conf, ILogger<MirrorZInfo> log, JobQueue jobQueue) : CustomControllerBase(conf)
 {
-    private string TransformStatus(SyncJob job)
+    private string TransformStatus(MirrorItemInfo item)
     {
-        var item = job.MirrorItem;
         if (item.Status == MirrorStatus.Cached) return "C";
         if (item.Status == MirrorStatus.Succeeded)
-            return $"S{item.LastSuccessAt.ToUnixTimeSeconds()}X{job.TaskShouldStartAt.ToUnixTimeSeconds()}";
+            return $"S{item.LastSuccessAt.ToUnixTimeSeconds()}X{item.NextSyncAt().ToUnixTimeSeconds()}";
         if (item.Status == MirrorStatus.Syncing)
-            return $"Y{job.TaskStartedAt.ToUnixTimeSeconds()}O{item.LastSuccessAt.ToUnixTimeSeconds()}";
+            return $"Y{item.LastSyncAt.ToUnixTimeSeconds()}O{item.LastSuccessAt.ToUnixTimeSeconds()}";
         if (item.Status == MirrorStatus.Failed)
             return $"F{item.LastSyncAt.ToUnixTimeSeconds()}O{item.LastSuccessAt.ToUnixTimeSeconds()}";
         return "U";
@@ -28,16 +27,16 @@ public class MirrorZInfo(IConfiguration conf, ILogger<MirrorZInfo> log, JobQueue
     [OutputCache(Duration = 30)]
     public ActionResult<MirrorZData> GetMirrorZData()
     {
-        var (pendingJobs, syncingJobs) = jobQueue.GetJobs();
-        var jobs = (pendingJobs as IEnumerable<SyncJob>).Concat(syncingJobs).Where(x => x.Stale == false).ToList();
-        var transformedItems = jobs
+        var mirrors = jobQueue.GetMirrorItems();
+        var transformedItems = mirrors
+            .Select(x => x.Value)
             .Select(x => new MirrorZMirrorItem(
-                x.MirrorItem.Config.Id,
-                x.MirrorItem.Config.Info.Description.Zh,
-                x.MirrorItem.Config.Info.Url,
+                x.Config.Id,
+                x.Config.Info.Description.Zh,
+                x.Config.Info.Url,
                 TransformStatus(x),
-                $"/docs/{x.MirrorItem.Config.Id}",
-                x.MirrorItem.Config.Info.Upstream,
+                $"/docs/{x.Config.Id}",
+                x.Config.Info.Upstream,
                 "0"
             )).ToList();
 
