@@ -91,14 +91,7 @@ public class JobQueue
             _log.LogWarning("Job {guid}({id}) took too long, marking as failed", job.Guid,
                 job.MirrorItem.Config.Id);
             job.MirrorItem.LastSyncAt = job.TaskStartedAt;
-            _stateStore.SetMirrorInfo(new SavedInfo
-            {
-                Id = job.MirrorItem.Config.Id,
-                Status = MirrorStatus.Failed,
-                LastSyncAt = job.MirrorItem.LastSyncAt,
-                LastSuccessAt = job.MirrorItem.LastSuccessAt,
-                Size = job.MirrorItem.Size
-            });
+            _stateStore.SetMirrorInfo(MirrorStatus.Failed, job.MirrorItem);
             var newJob = new SyncJob(job);
             newJob.TaskShouldStartAt = DateTime.Now;
             _pendingQueue.Enqueue(newJob);
@@ -146,14 +139,7 @@ public class JobQueue
         job.WorkerId = workerId;
         job.MirrorItem.LastSyncAt = DateTime.Now;
         _syncingDict[job.Guid] = job;
-        _stateStore.SetMirrorInfo(new SavedInfo
-        {
-            Id = job.MirrorItem.Config.Id,
-            Status = MirrorStatus.Syncing,
-            LastSyncAt = job.MirrorItem.LastSyncAt,
-            LastSuccessAt = job.MirrorItem.LastSuccessAt,
-            Size = job.MirrorItem.Size
-        });
+        _stateStore.SetMirrorInfo(MirrorStatus.Syncing, job.MirrorItem);
         return true;
     }
 
@@ -174,27 +160,12 @@ public class JobQueue
             return;
         }
 
-        if (status == MirrorStatus.Failed)
-            _stateStore.SetMirrorInfo(new SavedInfo
-            {
-                Id = job.MirrorItem.Config.Id,
-                Status = status,
-                LastSyncAt = job.MirrorItem.LastSyncAt,
-                LastSuccessAt = job.MirrorItem.LastSuccessAt,
-                Size = job.MirrorItem.Size
-            });
-        else // if (status == MirrorStatus.Succeeded) 
+        if (status == MirrorStatus.Succeeded)
         {
             job.MirrorItem.LastSuccessAt = DateTime.Now;
-            _stateStore.SetMirrorInfo(new SavedInfo
-            {
-                Id = job.MirrorItem.Config.Id,
-                Status = status,
-                LastSyncAt = job.MirrorItem.LastSyncAt,
-                LastSuccessAt = job.MirrorItem.LastSuccessAt,
-                Size = job.MirrorItem.Size
-            });
         }
+
+        _stateStore.SetMirrorInfo(status, job.MirrorItem);
 
         if (job.Stale) return;
         _pendingQueue.Enqueue(new SyncJob(job));

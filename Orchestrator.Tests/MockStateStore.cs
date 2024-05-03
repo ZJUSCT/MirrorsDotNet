@@ -43,4 +43,9 @@ public class MockStateStore : IStateStore
     {
         _newMirrorItems = items.ToList();
     }
+    
+    public void SetMirrorInfo(MirrorStatus status, MirrorItemInfo mirrorItemInfo)
+    {
+        throw new NotImplementedException();
+    }
 }

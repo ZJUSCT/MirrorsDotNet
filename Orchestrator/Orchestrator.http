@@ -38,7 +38,7 @@ X-Worker-Token: {{WorkerToken}}
 
 ###
 
-PUT {{UrlBase}}/jobs/8ab6d7bd-77d2-4443-b59e-fb88d14931eb
+PUT {{UrlBase}}/jobs/b98df4ff-4681-43fa-a492-9a19a1720e10
 Accept: application/json
 Content-Type: application/json
 X-Worker-Token: {{WorkerToken}}

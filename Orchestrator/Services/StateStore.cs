@@ -145,4 +145,16 @@ public class StateStore : IStateStore
             _log.LogError("Failed to save mirror info to db: {e}", e);
         }
     }
+
+    public void SetMirrorInfo(MirrorStatus status, MirrorItemInfo mirrorItemInfo)
+    {
+        SetMirrorInfo(new SavedInfo
+        {
+            Id = mirrorItemInfo.Config.Id,
+            Status = status,
+            LastSyncAt = mirrorItemInfo.LastSyncAt,
+            LastSuccessAt = mirrorItemInfo.LastSuccessAt,
+            Size = mirrorItemInfo.Size
+        });
+    }
 }
