@@ -56,13 +56,15 @@ public class StateStore : IStateStore
             var newInfo = new MirrorItemInfo(conf)
             {
                 Status = MirrorStatus.Unknown,
-                LastSyncAt = DateTimeConstants.UnixEpoch
+                LastSyncAt = DateTimeConstants.UnixEpoch,
+                LastSuccessAt = DateTimeConstants.UnixEpoch
             };
             var savedInfo = savedInfos.FirstOrDefault(x => x.Id == conf.Id);
             if (savedInfo != null)
             {
                 newInfo.Status = savedInfo.Status;
                 newInfo.LastSyncAt = savedInfo.LastSyncAt.ToLocalTime();
+                newInfo.LastSuccessAt = savedInfo.LastSuccessAt.ToLocalTime();
                 newInfo.Size = savedInfo.Size;
             }
             else
@@ -71,7 +73,8 @@ public class StateStore : IStateStore
                 {
                     Id = conf.Id,
                     Status = MirrorStatus.Unknown,
-                    LastSyncAt = DateTimeConstants.UnixEpoch
+                    LastSyncAt = DateTimeConstants.UnixEpoch,
+                    LastSuccessAt = DateTimeConstants.UnixEpoch
                 });
             }
 
@@ -118,6 +121,7 @@ public class StateStore : IStateStore
         {
             item.Value.Status = info.Status;
             item.Value.LastSyncAt = info.LastSyncAt;
+            item.Value.LastSuccessAt = info.LastSuccessAt;
             item.Value.Size = info.Size;
         }
 
@@ -128,6 +132,7 @@ public class StateStore : IStateStore
             Id = info.Id,
             Status = info.Status,
             LastSyncAt = info.LastSyncAt.ToUniversalTime(),
+            LastSuccessAt = info.LastSuccessAt.ToUniversalTime(),
             Size = info.Size
         });
 

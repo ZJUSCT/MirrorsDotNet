@@ -38,13 +38,13 @@ X-Worker-Token: {{WorkerToken}}
 
 ###
 
-PUT {{UrlBase}}/jobs/68abebf9-f1a9-40f6-97f1-0d46443f78ac
+PUT {{UrlBase}}/jobs/8ab6d7bd-77d2-4443-b59e-fb88d14931eb
 Accept: application/json
 Content-Type: application/json
 X-Worker-Token: {{WorkerToken}}
 
 {
-  "status": 1
+  "status": 0
 }
 
 ###

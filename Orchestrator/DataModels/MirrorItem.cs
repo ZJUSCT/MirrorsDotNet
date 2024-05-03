@@ -13,12 +13,14 @@ public class MirrorItemInfo
     {
         Status = info.Status;
         LastSyncAt = info.LastSyncAt;
+        LastSuccessAt = info.LastSuccessAt;
         Size = info.Size;
     }
 
     public ConfigInfo Config { get; }
     public MirrorStatus Status { get; set; }
     public DateTime LastSyncAt { get; set; }
+    public DateTime LastSuccessAt { get; set; }
     public ulong Size { get; set; }
 
     public DateTime NextSyncAt()

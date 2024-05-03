@@ -24,11 +24,13 @@ public partial class Mirrors
                         Th("Size"),
                         Th("Status"),
                         Th("LastSyncAt"),
+                        Th("LastSuccessAt"),
                         Th("NextSyncAt"),
                     ]),
                     TBody(mirrors
                         .Select(kv => kv.Value)
-                        .OrderByDescending(x => x.NextSyncAt())
+                        .OrderBy(x => x.Status)
+                        .ThenBy(x => x.Config.Id)
                         .Select(x => Tr([
                             Th(x.Config.Id),
                             Td(x.Config.Info.Url),
@@ -37,6 +39,7 @@ public partial class Mirrors
                             Td(x.Size.ToString()),
                             Td(StatusToString(x.Status)),
                             Td(x.LastSyncAt.ToString(CultureInfo.InvariantCulture)),
+                            Td(x.LastSuccessAt.ToString(CultureInfo.InvariantCulture)),
                             Td(x.NextSyncAt().ToString(CultureInfo.InvariantCulture)),
                         ]))
                         .ToList())

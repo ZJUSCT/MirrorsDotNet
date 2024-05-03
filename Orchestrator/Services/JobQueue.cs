@@ -58,7 +58,7 @@ public class JobQueue
     {
         return (_pendingQueue.Count, _syncingDict.Count);
     }
-    
+
     public (List<SyncJob> pendingJobs, List<SyncJob> syncingJobs) GetJobs()
     {
         using var _ = new ScopeReadLock(_rwLock);
@@ -94,7 +94,8 @@ public class JobQueue
             {
                 Id = job.MirrorItem.Config.Id,
                 Status = MirrorStatus.Failed,
-                LastSyncAt = job.MirrorItem.LastSyncAt,
+                LastSyncAt = job.TaskStartedAt,
+                LastSuccessAt = job.MirrorItem.LastSuccessAt,
                 Size = job.MirrorItem.Size
             });
             var newJob = new SyncJob(job);
@@ -114,7 +115,7 @@ public class JobQueue
             _forceRefreshDict[mirrorId] = 0;
         }
     }
-    
+
     public bool TryGetNewJob(in string workerId, [MaybeNullWhen(false)] out SyncJob job)
     {
         LastActive = DateTime.Now;
@@ -148,6 +149,7 @@ public class JobQueue
             Id = job.MirrorItem.Config.Id,
             Status = MirrorStatus.Syncing,
             LastSyncAt = job.MirrorItem.LastSyncAt,
+            LastSuccessAt = job.MirrorItem.LastSuccessAt,
             Size = job.MirrorItem.Size
         });
         return true;
@@ -176,16 +178,21 @@ public class JobQueue
                 Id = job.MirrorItem.Config.Id,
                 Status = status,
                 LastSyncAt = job.MirrorItem.LastSyncAt,
+                LastSuccessAt = job.MirrorItem.LastSuccessAt,
                 Size = job.MirrorItem.Size
             });
-        else // if (status == MirrorStatus.Succeeded)
+        else // if (status == MirrorStatus.Succeeded) 
+        {
+            var now = DateTime.Now;
             _stateStore.SetMirrorInfo(new SavedInfo
             {
                 Id = job.MirrorItem.Config.Id,
                 Status = status,
-                LastSyncAt = DateTime.Now,
+                LastSyncAt = now,
+                LastSuccessAt = now,
                 Size = job.MirrorItem.Size
             });
+        }
 
         if (job.Stale) return;
         _pendingQueue.Enqueue(new SyncJob(job));

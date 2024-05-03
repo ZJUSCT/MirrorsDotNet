@@ -38,7 +38,7 @@ public partial class Mirrors(IConfiguration conf, JobQueue jobQueue) : CustomCon
                 StatusToString(x.Status),
                 x.LastSyncAt.ToUnixTimeSeconds().ToString(),
                 x.NextSyncAt().ToUnixTimeSeconds().ToString(),
-                x.LastSyncAt.ToUnixTimeSeconds().ToString(),
+                x.LastSuccessAt.ToUnixTimeSeconds().ToString(),
                 []
             )));
     }
