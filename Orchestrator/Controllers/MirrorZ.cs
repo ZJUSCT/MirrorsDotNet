@@ -1,4 +1,5 @@
 ﻿using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.OutputCaching;
 using Orchestrator.DataModels;
 using Orchestrator.Services;
 using Orchestrator.Utils;
@@ -24,6 +25,7 @@ public class MirrorZInfo(IConfiguration conf, ILogger<MirrorZInfo> log, JobQueue
     }
     
     [HttpGet("")]
+    [OutputCache(Duration = 30)]
     public ActionResult<MirrorZData> GetMirrorZData()
     {
         var (pendingJobs, syncingJobs) = jobQueue.GetJobs();

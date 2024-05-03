@@ -13,6 +13,7 @@ builder.Services.AddSingleton<IStateStore, StateStore>();
 builder.Services.AddSingleton<JobQueue>();
 builder.Services.AddMvc(opt =>
     opt.OutputFormatters.OfType<StringOutputFormatter>().Single().SupportedMediaTypes.Add("text/html"));
+builder.Services.AddOutputCache();
 builder.Services.AddControllers();
 
 var app = builder.Build();
@@ -30,5 +31,6 @@ if (app.Environment.IsDevelopment())
 }
 
 app.MapControllers();
+app.UseOutputCache();
 
 app.Run();

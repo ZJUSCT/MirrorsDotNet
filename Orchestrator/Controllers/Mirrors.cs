@@ -1,4 +1,5 @@
 ﻿using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.OutputCaching;
 using Orchestrator.DataModels;
 using Orchestrator.Services;
 using Orchestrator.Utils;
@@ -22,6 +23,7 @@ public partial class Mirrors(IConfiguration conf, JobQueue jobQueue) : CustomCon
     }
 
     [HttpGet("")]
+    [OutputCache(Duration = 30)]
     public ActionResult<IList<MirrorItemDto>> GetAllMirrors()
     {
         var mirrors = jobQueue.GetMirrorItems();
@@ -44,6 +46,7 @@ public partial class Mirrors(IConfiguration conf, JobQueue jobQueue) : CustomCon
     }
 
     [HttpGet("{id}")]
+    [OutputCache(Duration = 30)]
     public ActionResult<MirrorItemDto> GetMirrorById([FromRoute] string id)
     {
         var mirror = jobQueue.GetMirrorItemById(id);
