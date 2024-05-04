@@ -51,9 +51,9 @@ public partial class Mirrors(IConfiguration conf, JobQueue jobQueue) : CustomCon
         string Upstream,
         string Size,
         string Status,
-        string LastUpdated,
-        string NextScheduled,
-        string LastSuccess)
+        long LastUpdated,
+        long NextScheduled,
+        long LastSuccess)
     {
         public MirrorItemDto(MirrorItemInfo item) : this(
             item.Config.Id,
@@ -63,9 +63,9 @@ public partial class Mirrors(IConfiguration conf, JobQueue jobQueue) : CustomCon
             item.Config.Info.Upstream,
             FileSizeUtil.ToString(item.Size),
             StatusToString(item.Status),
-            item.LastSyncAt.ToUnixTimeSeconds().ToString(),
-            item.NextSyncAt().ToUnixTimeSeconds().ToString(),
-            item.LastSuccessAt.ToUnixTimeSeconds().ToString()
+            item.LastSyncAt.ToUnixTimeSeconds(),
+            item.NextSyncAt().ToUnixTimeSeconds(),
+            item.LastSuccessAt.ToUnixTimeSeconds()
             )
         {
         }

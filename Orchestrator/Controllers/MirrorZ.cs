@@ -44,6 +44,8 @@ public class MirrorZInfo(IConfiguration conf, ILogger<MirrorZInfo> log, JobQueue
             1.7,
             MirrorZStatic.SiteInfo,
             new List<MirrorZCatItem>(),
-            transformedItems);
+            transformedItems,
+            "D",
+            MirrorZStatic.EndpointInfos);
     }
 }
