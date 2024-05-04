@@ -29,20 +29,7 @@ public partial class Mirrors(IConfiguration conf, JobQueue jobQueue) : CustomCon
         var mirrors = jobQueue.GetMirrorItems();
         return Ok(mirrors
             .Select(x => x.Value)
-            .Select(x => new MirrorItemDto
-            (
-                x.Config.Id,
-                x.Config.Info.Url,
-                x.Config.Info.Name,
-                x.Config.Info.Description,
-                x.Config.Info.Upstream,
-                x.Size.ToString(),
-                StatusToString(x.Status),
-                x.LastSyncAt.ToUnixTimeSeconds().ToString(),
-                x.NextSyncAt().ToUnixTimeSeconds().ToString(),
-                x.LastSuccessAt.ToUnixTimeSeconds().ToString(),
-                []
-            )));
+            .Select(x => new MirrorItemDto(x)));
     }
 
     [HttpGet("{id}")]
@@ -50,7 +37,7 @@ public partial class Mirrors(IConfiguration conf, JobQueue jobQueue) : CustomCon
     public ActionResult<MirrorItemDto> GetMirrorById([FromRoute] string id)
     {
         var mirror = jobQueue.GetMirrorItemById(id);
-        return mirror == null ? NotFound() : Ok(mirror);
+        return mirror == null ? NotFound() : Ok(new MirrorItemDto(mirror));
     }
 
     [HttpGet("lastActive")]
@@ -66,6 +53,21 @@ public partial class Mirrors(IConfiguration conf, JobQueue jobQueue) : CustomCon
         string Status,
         string LastUpdated,
         string NextScheduled,
-        string LastSuccess,
-        string[] Files);
+        string LastSuccess)
+    {
+        public MirrorItemDto(MirrorItemInfo item) : this(
+            item.Config.Id,
+            item.Config.Info.Url,
+            item.Config.Info.Name,
+            item.Config.Info.Description,
+            item.Config.Info.Upstream,
+            FileSizeUtil.ToString(item.Size),
+            StatusToString(item.Status),
+            item.LastSyncAt.ToUnixTimeSeconds().ToString(),
+            item.NextSyncAt().ToUnixTimeSeconds().ToString(),
+            item.LastSuccessAt.ToUnixTimeSeconds().ToString()
+            )
+        {
+        }
+    }
 }
